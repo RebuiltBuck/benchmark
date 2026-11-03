@@ -389,7 +389,7 @@ button.row { width: 100%; text-align: left; }
 :root {
   --bg: #F3F3F3; --surface: #FFFFFF; --surface-2: rgb(20 0 0 / .055); --line: rgb(20 0 0 / .09);
   --glass: rgb(255 255 255 / .58); --glass-hi: rgb(255 255 255 / .82); --glass-2: rgb(255 255 255 / .74); --glass-line: rgb(255 255 255 / .95); --glass-edge: rgb(255 255 255 / .9);
-  --seg-on: #FFFFFF; --bar: #FFFFFF; --amb1: rgb(0 0 0 / .07); --amb2: rgb(0 0 0 / .05); --amb3: rgb(0 0 0 / .04);
+  --seg-on: #FFFFFF; --bar: #F3F3F3; --amb1: rgb(0 0 0 / .07); --amb2: rgb(0 0 0 / .05); --amb3: rgb(0 0 0 / .04);
   --shadow: 0 10px 30px -12px rgb(60 0 0 / .18), 0 1px 2px rgb(0 0 0 / .05);
   --accent-grad: linear-gradient(135deg, color-mix(in srgb, var(--accent) 72%, #fff) 0%, var(--accent) 48%, color-mix(in srgb, var(--accent) 70%, #000) 100%);
   --glow: color-mix(in srgb, var(--accent) 55%, transparent);
@@ -399,19 +399,19 @@ button.row { width: 100%; text-align: left; }
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #050505; --surface: #141414; --surface-2: rgb(255 255 255 / .075); --line: rgb(255 255 255 / .1);
   --glass: rgb(255 255 255 / .045); --glass-hi: rgb(255 255 255 / .085); --glass-2: rgb(24 22 22 / .72); --glass-line: rgb(255 255 255 / .12); --glass-edge: rgb(255 255 255 / .1);
-  --seg-on: rgb(255 255 255 / .16); --bar: #0D0D0D; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
+  --seg-on: rgb(255 255 255 / .16); --bar: #050505; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
   --shadow: 0 14px 34px -14px rgb(0 0 0 / .8); } }
 :root[data-theme="dark"] { --bg: #050505; --surface: #141414; --surface-2: rgb(255 255 255 / .075); --line: rgb(255 255 255 / .1);
   --glass: rgb(255 255 255 / .045); --glass-hi: rgb(255 255 255 / .085); --glass-2: rgb(24 22 22 / .72); --glass-line: rgb(255 255 255 / .12); --glass-edge: rgb(255 255 255 / .1);
-  --seg-on: rgb(255 255 255 / .16); --bar: #0D0D0D; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
+  --seg-on: rgb(255 255 255 / .16); --bar: #050505; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
   --shadow: 0 14px 34px -14px rgb(0 0 0 / .8); }
 html:root.force-dark { --bg: #050505; --surface: #141414; --surface-2: rgb(255 255 255 / .075); --line: rgb(255 255 255 / .1);
   --glass: rgb(255 255 255 / .045); --glass-hi: rgb(255 255 255 / .085); --glass-2: rgb(24 22 22 / .72); --glass-line: rgb(255 255 255 / .12); --glass-edge: rgb(255 255 255 / .1);
-  --seg-on: rgb(255 255 255 / .16); --bar: #0D0D0D; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
+  --seg-on: rgb(255 255 255 / .16); --bar: #050505; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
   --shadow: 0 14px 34px -14px rgb(0 0 0 / .8); }
 html:root.force-light { --bg: #F3F3F3; --surface: #FFFFFF; --surface-2: rgb(20 0 0 / .055); --line: rgb(20 0 0 / .09);
   --glass: rgb(255 255 255 / .58); --glass-hi: rgb(255 255 255 / .82); --glass-2: rgb(255 255 255 / .74); --glass-line: rgb(255 255 255 / .95); --glass-edge: rgb(255 255 255 / .9);
-  --seg-on: #FFFFFF; --bar: #FFFFFF; --amb1: rgb(0 0 0 / .07); --amb2: rgb(0 0 0 / .05); --amb3: rgb(0 0 0 / .04);
+  --seg-on: #FFFFFF; --bar: #F3F3F3; --amb1: rgb(0 0 0 / .07); --amb2: rgb(0 0 0 / .05); --amb3: rgb(0 0 0 / .04);
   --shadow: 0 10px 30px -12px rgb(60 0 0 / .18), 0 1px 2px rgb(0 0 0 / .05); }
 
 html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transparent); --amb2: color-mix(in srgb, var(--accent) 30%, transparent); --amb3: color-mix(in srgb, var(--accent) 16%, transparent); }
@@ -473,7 +473,10 @@ button.card:active, .pick-item:active, .exrow:active { transform: scale(.985); }
 .muted.small, .row-l .small, .tile .l, .rec .l { font-size: .8125rem; }
 
 /* Docked tab bar with a sliding highlight */
-.tabs { position: relative; z-index: 20; padding: 6px 6px calc(env(safe-area-inset-bottom) + 6px); border-top: 1px solid var(--line); background: var(--bar); box-shadow: 0 -6px 20px -14px rgb(0 0 0 / .35); }
+.tabs { position: relative; z-index: 20; padding: 6px 6px calc(env(safe-area-inset-bottom) + 6px); border-top: 0; background: var(--bar); box-shadow: none; }
+.tabs::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 44px; background: linear-gradient(to bottom, color-mix(in srgb, var(--bar) 0%, transparent), color-mix(in srgb, var(--bar) 70%, transparent) 55%, var(--bar)); pointer-events: none; }
+#app.has-mini .tabs::before { display: none; }
+#minibar:not(:empty) { box-shadow: 0 -20px 24px -4px var(--bar); }
 .tab { position: relative; z-index: 1; transition: color .3s; border-radius: 16px; }
 .tab .ic { transition: transform .4s var(--spring); }
 .tab[aria-current="page"] .ic { transform: translateY(-1px) scale(1.1); }
@@ -1324,7 +1327,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 7</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 8</p>`;
 }
 
 // =====================================================================
