@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-accent="red" data-size="m">
+<html lang="en" data-accent="chalk" data-tint="off" data-size="m">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -69,7 +69,7 @@ html[data-accent="blue"]   { --acc-l: #1E5BD0; --acc-d: #5D9BFF; --acc-ink-l: #F
 html[data-accent="red"]    { --acc-l: #C8101A; --acc-d: #E3141E; --acc-ink-l: #FFFFFF; --acc-ink-d: #FFFFFF; }
 html[data-accent="yellow"] { --acc-l: #8A6500; --acc-d: #F2C230; --acc-ink-l: #FFFFFF; --acc-ink-d: #221A00; }
 html[data-accent="green"]  { --acc-l: #157444; --acc-d: #45CF86; --acc-ink-l: #FFFFFF; --acc-ink-d: #06200F; }
-html[data-accent="chalk"]  { --acc-l: #2A2D32; --acc-d: #ECEAE4; --acc-ink-l: #FFFFFF; --acc-ink-d: #111214; }
+html[data-accent="chalk"]  { --acc-l: #111111; --acc-d: #F2F2F2; --acc-ink-l: #FFFFFF; --acc-ink-d: #000000; }
 html[data-size="l"] { font-size: 18px; }
 
 * { box-sizing: border-box; }
@@ -387,9 +387,9 @@ button.row { width: 100%; text-align: left; }
 
 /* ================= Premium layer: glass, gradient light, motion ================= */
 :root {
-  --bg: #F5F1F1; --surface: #FFFFFF; --surface-2: rgb(20 0 0 / .055); --line: rgb(20 0 0 / .09);
+  --bg: #F3F3F3; --surface: #FFFFFF; --surface-2: rgb(20 0 0 / .055); --line: rgb(20 0 0 / .09);
   --glass: rgb(255 255 255 / .58); --glass-hi: rgb(255 255 255 / .82); --glass-2: rgb(255 255 255 / .74); --glass-line: rgb(255 255 255 / .95); --glass-edge: rgb(255 255 255 / .9);
-  --seg-on: #FFFFFF; --amb1: rgb(255 60 60 / .30); --amb2: rgb(255 150 130 / .34); --amb3: rgb(200 30 50 / .14);
+  --seg-on: #FFFFFF; --bar: #FFFFFF; --amb1: rgb(0 0 0 / .07); --amb2: rgb(0 0 0 / .05); --amb3: rgb(0 0 0 / .04);
   --shadow: 0 10px 30px -12px rgb(60 0 0 / .18), 0 1px 2px rgb(0 0 0 / .05);
   --accent-grad: linear-gradient(135deg, color-mix(in srgb, var(--accent) 72%, #fff) 0%, var(--accent) 48%, color-mix(in srgb, var(--accent) 70%, #000) 100%);
   --glow: color-mix(in srgb, var(--accent) 55%, transparent);
@@ -399,27 +399,27 @@ button.row { width: 100%; text-align: left; }
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #050505; --surface: #141414; --surface-2: rgb(255 255 255 / .075); --line: rgb(255 255 255 / .1);
   --glass: rgb(255 255 255 / .045); --glass-hi: rgb(255 255 255 / .085); --glass-2: rgb(24 22 22 / .72); --glass-line: rgb(255 255 255 / .12); --glass-edge: rgb(255 255 255 / .1);
-  --seg-on: rgb(255 255 255 / .16); --amb1: rgb(230 20 30 / .50); --amb2: rgb(140 0 20 / .55); --amb3: rgb(255 70 60 / .22);
+  --seg-on: rgb(255 255 255 / .16); --bar: #0D0D0D; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
   --shadow: 0 14px 34px -14px rgb(0 0 0 / .8); } }
 :root[data-theme="dark"] { --bg: #050505; --surface: #141414; --surface-2: rgb(255 255 255 / .075); --line: rgb(255 255 255 / .1);
   --glass: rgb(255 255 255 / .045); --glass-hi: rgb(255 255 255 / .085); --glass-2: rgb(24 22 22 / .72); --glass-line: rgb(255 255 255 / .12); --glass-edge: rgb(255 255 255 / .1);
-  --seg-on: rgb(255 255 255 / .16); --amb1: rgb(230 20 30 / .50); --amb2: rgb(140 0 20 / .55); --amb3: rgb(255 70 60 / .22);
+  --seg-on: rgb(255 255 255 / .16); --bar: #0D0D0D; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
   --shadow: 0 14px 34px -14px rgb(0 0 0 / .8); }
 html:root.force-dark { --bg: #050505; --surface: #141414; --surface-2: rgb(255 255 255 / .075); --line: rgb(255 255 255 / .1);
   --glass: rgb(255 255 255 / .045); --glass-hi: rgb(255 255 255 / .085); --glass-2: rgb(24 22 22 / .72); --glass-line: rgb(255 255 255 / .12); --glass-edge: rgb(255 255 255 / .1);
-  --seg-on: rgb(255 255 255 / .16); --amb1: rgb(230 20 30 / .50); --amb2: rgb(140 0 20 / .55); --amb3: rgb(255 70 60 / .22);
+  --seg-on: rgb(255 255 255 / .16); --bar: #0D0D0D; --amb1: rgb(255 255 255 / .09); --amb2: rgb(255 255 255 / .06); --amb3: rgb(255 255 255 / .05);
   --shadow: 0 14px 34px -14px rgb(0 0 0 / .8); }
-html:root.force-light { --bg: #F5F1F1; --surface: #FFFFFF; --surface-2: rgb(20 0 0 / .055); --line: rgb(20 0 0 / .09);
+html:root.force-light { --bg: #F3F3F3; --surface: #FFFFFF; --surface-2: rgb(20 0 0 / .055); --line: rgb(20 0 0 / .09);
   --glass: rgb(255 255 255 / .58); --glass-hi: rgb(255 255 255 / .82); --glass-2: rgb(255 255 255 / .74); --glass-line: rgb(255 255 255 / .95); --glass-edge: rgb(255 255 255 / .9);
-  --seg-on: #FFFFFF; --amb1: rgb(255 60 60 / .30); --amb2: rgb(255 150 130 / .34); --amb3: rgb(200 30 50 / .14);
+  --seg-on: #FFFFFF; --bar: #FFFFFF; --amb1: rgb(0 0 0 / .07); --amb2: rgb(0 0 0 / .05); --amb3: rgb(0 0 0 / .04);
   --shadow: 0 10px 30px -12px rgb(60 0 0 / .18), 0 1px 2px rgb(0 0 0 / .05); }
 
+html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transparent); --amb2: color-mix(in srgb, var(--accent) 30%, transparent); --amb3: color-mix(in srgb, var(--accent) 16%, transparent); }
 body::before { content: ""; position: fixed; inset: -25%; z-index: -1; background: var(--ambient); filter: blur(30px); animation: drift 26s ease-in-out infinite alternate; pointer-events: none; }
 @keyframes drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4%, 3%, 0) scale(1.08); } 100% { transform: translate3d(-3%, 5%, 0) scale(1.03); } }
 #app { position: relative; }
 .topbar { background: transparent; }
-#view { padding-bottom: 118px; scroll-behavior: smooth; }
-#app.has-mini #view { padding-bottom: 186px; }
+#view { padding-bottom: 28px; scroll-behavior: smooth; }
 
 .card, .tile { background: linear-gradient(180deg, var(--glass-hi), var(--glass)); border: 1px solid var(--glass-line); border-radius: 20px; box-shadow: var(--shadow), inset 0 1px 0 var(--glass-edge); transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
 .tile { border-radius: 18px; }
@@ -454,14 +454,24 @@ button.card:active, .pick-item:active, .exrow:active { transform: scale(.985); }
 .minibar { width: calc(100% - 20px); }
 .title-input, .title-input:focus { background: transparent; box-shadow: none; border-color: transparent; border-bottom-color: var(--line); border-radius: 0; }
 .title-input:focus { border-bottom-color: var(--accent); }
-/* Floating glass tab bar with a sliding highlight */
-.tabs { position: absolute; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 10px); max-width: 560px; margin: 0 auto; z-index: 20; padding: 6px; border-radius: 26px; border: 1px solid var(--glass-line); background: var(--glass-2); -webkit-backdrop-filter: blur(26px) saturate(180%); backdrop-filter: blur(26px) saturate(180%); box-shadow: 0 16px 40px -12px rgb(0 0 0 / .35), inset 0 1px 0 var(--glass-edge); }
-.tab { position: relative; z-index: 1; transition: color .3s; border-radius: 20px; }
+/* Bigger item names, small descriptions */
+.h3 { font-size: 1.1875rem; }
+.exname { font-size: 1.1875rem; }
+.exrow > div:first-child > div:first-child, .pick-item .pi-name, .row-l { font-size: 1.0625rem; }
+.exrow > div:first-child > div:first-child { font-weight: 700; }
+.hl { font-size: 1rem; }
+.hc-stats { font-size: .875rem; }
+.muted.small, .row-l .small, .tile .l, .rec .l { font-size: .8125rem; }
+
+/* Docked tab bar with a sliding highlight */
+.tabs { position: relative; z-index: 20; padding: 6px 6px calc(env(safe-area-inset-bottom) + 6px); border-top: 1px solid var(--line); background: var(--bar); box-shadow: 0 -6px 20px -14px rgb(0 0 0 / .35); }
+.tab { position: relative; z-index: 1; transition: color .3s; border-radius: 16px; }
 .tab .ic { transition: transform .4s var(--spring); }
 .tab[aria-current="page"] .ic { transform: translateY(-1px) scale(1.1); }
-.tab-ind { position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 20px; background: color-mix(in srgb, var(--accent) 15%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); transition: transform .5s var(--spring); pointer-events: none; }
-#minibar { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 84px); z-index: 19; }
-.minibar { box-shadow: 0 12px 30px -10px var(--glow), inset 0 1px 0 rgb(255 255 255 / .25); animation: rise .45s var(--spring) both; }
+.tab-ind { position: absolute; top: 6px; left: 6px; height: calc(100% - 12px - env(safe-area-inset-bottom)); width: calc((100% - 12px) / 5); border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line); transition: transform .5s var(--spring); pointer-events: none; }
+.tab[aria-current="page"] { color: var(--ink); }
+#minibar { position: relative; z-index: 19; background: var(--bar); padding-top: 8px; }
+.minibar { box-shadow: 0 8px 22px -10px var(--glow), inset 0 1px 0 rgb(255 255 255 / .25); animation: rise .45s var(--spring) both; }
 
 /* Sheets and dialogs */
 .sheet { background: var(--ambient), var(--bg); transition: transform .5s cubic-bezier(.2, 1, .3, 1); box-shadow: 0 -20px 50px rgb(0 0 0 / .25); }
@@ -497,7 +507,8 @@ button.card:active, .pick-item:active, .exrow:active { transform: scale(.985); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-delay: 0s !important; }
-  body::before { animation: none; }
+  html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transparent); --amb2: color-mix(in srgb, var(--accent) 30%, transparent); --amb3: color-mix(in srgb, var(--accent) 16%, transparent); }
+body::before { animation: none; }
 }
 </style>
 </head>
@@ -712,14 +723,14 @@ function starterToRoutine(st) {
 const DEFAULT_SETTINGS = {
   unit: 'lb', distUnit: 'mi', rest: 90, restAuto: true, restSound: true, restVibrate: true,
   showRPE: false, showPrev: true, defaultSets: 3, weeklyGoal: 3, e1rm: 'epley', weekStart: 1,
-  theme: 'system', accent: 'red', size: 'm', barLb: 45, barKg: 20,
+  theme: 'system', accent: 'chalk', tint: false, size: 'm', barLb: 45, barKg: 20,
   platesLb: [45, 35, 25, 10, 5, 2.5], platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
-  nutriShow: ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na'], nutriGoals: {}, themeV: 2,
+  nutriShow: ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na'], nutriGoals: {}, themeV: 3,
 };
 const DOC_KEYS = ['settings', 'library', 'routines', 'body', 'active', 'foods'];
 const EMPTY = { settings: {}, library: [], routines: [], body: [], active: null, foods: [] };
 // Older saves predate the black, white and red theme: move them onto it once.
-function migrateSettings(raw) { if (raw && raw.themeV !== 2) { S.settings.accent = 'red'; S.settings.themeV = 2; S.settingsAt = Date.now(); } }
+function migrateSettings(raw) { if (raw && raw.themeV !== 3) { S.settings.accent = 'chalk'; S.settings.tint = false; S.settings.themeV = 3; S.settingsAt = Date.now(); } }
 const S = {
   settings: { ...DEFAULT_SETTINGS }, settingsAt: 0,
   library: [], libraryAt: 0,
@@ -914,7 +925,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 const Cloud = { db: null, base: null, ready: false, status: 'local', q: new Set(), timers: {}, busy: false, stopped: false };
 const claudeUse = name => (window.claude && typeof window.claude.use === 'function') ? Promise.resolve(window.claude.use(name)).catch(() => null) : Promise.resolve(null);
 const SYNC_TEXT = {
-  local: ['Saved on this phone. Back up now and then under Your data.', ''],
+  local: ['Saved on this phone', ''],
   connecting: ['Connecting to your account…', ''],
   slow: ['Your account isn’t reachable yet. Changes are saved on this device for now.', 'warn'],
   synced: ['Synced to your Claude account', 'ok'],
@@ -1040,7 +1051,7 @@ const TABS = [['home', 'Home', 'home'], ['workout', 'Workout', 'dumbbell'], ['fo
 const WSUBS = [['routines', 'Routines'], ['history', 'History'], ['progress', 'Progress']];
 function applySettings() {
   const h = document.documentElement, s = S.settings;
-  h.dataset.accent = s.accent; h.dataset.size = s.size;
+  h.dataset.accent = s.accent; h.dataset.size = s.size; h.dataset.tint = s.tint ? 'on' : 'off';
   h.classList.toggle('force-dark', s.theme === 'dark');
   h.classList.toggle('force-light', s.theme === 'light');
 }
@@ -1066,13 +1077,13 @@ function renderTop() {
   switch (UI.tab) {
     case 'home': title = 'Today'; sub = fmtDateLong(Date.now()); break;
     case 'workout': title = 'Workout';
-      sub = UI.wsub === 'history' ? (n ? `${n} workout${n === 1 ? '' : 's'} logged` : 'Your finished workouts land here') : UI.wsub === 'progress' ? 'Trends and records' : (S.routines.length ? `${S.routines.length} routine${S.routines.length === 1 ? '' : 's'} saved` : 'Plan your workouts once, start them in one tap');
+      sub = UI.wsub === 'history' ? (n ? `${n} workout${n === 1 ? '' : 's'} logged` : 'No workouts yet') : UI.wsub === 'progress' ? 'Trends and records' : (S.routines.length ? `${S.routines.length} routine${S.routines.length === 1 ? '' : 's'} saved` : 'Start one in a tap');
       if (UI.wsub === 'routines') right = `<button class="btn soft sm" data-act="routine-new">${ic('plus')} New routine</button>`;
       else if (!S.active) right = `<button class="btn primary sm" data-act="start-empty">${ic('plus')} Start</button>`;
       break;
-    case 'weight': title = 'Weight'; sub = 'Your trend, your goal and a food plan'; break;
-    case 'food': title = 'Food'; sub = 'Meals and nutrition facts'; break;
-    case 'more': title = 'Options'; sub = 'Settings, tools and your data'; break;
+    case 'weight': title = 'Weight'; sub = 'Trend, goal and plan'; break;
+    case 'food': title = 'Food'; sub = 'Meals and nutrition'; break;
+    case 'more': title = 'Options'; sub = 'Settings and data'; break;
   }
   $('#topbar').innerHTML = `<div><h1>${title}</h1><div class="sub">${esc(sub)}</div></div>${right}`;
 }
@@ -1098,7 +1109,7 @@ function setTab(t) {
 // ---------- Home ----------
 function demoBanner() {
   const n = Object.values(S.workouts).filter(w => w.demo).length; if (!n) return '';
-  return `<div class="banner"><span>You're looking at ${n} demo workouts. Your own workouts are kept separate.</span><button class="btn soft sm" data-act="demo-clear">Remove demo</button></div>`;
+  return `<div class="banner"><span>Showing ${n} demo workouts.</span><button class="btn soft sm" data-act="demo-clear">Remove demo</button></div>`;
 }
 function installHint() {
   const standalone = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
@@ -1112,7 +1123,7 @@ function viewHome() {
   if (S.active) {
     h += `<button class="card resume" data-act="resume"><div><div class="eyebrow">Workout in progress</div><div class="h3">${esc(S.active.name)}</div><div class="muted small"><span class="num" data-elapsed></span> · ${S.active.exercises.length} exercise${S.active.exercises.length === 1 ? '' : 's'} · ${doneCount(S.active)} sets done</div></div><span class="btn primary">Resume</span></button>`;
   } else {
-    h += `<div class="card start"><button class="btn primary lg block" data-act="start-empty">${ic('plus')} Start an empty workout</button><p class="muted small">Or start one of your routines below. Your last numbers fill in automatically.</p></div>`;
+    h += `<div class="card start"><button class="btn primary lg block" data-act="start-empty">${ic('plus')} Start an empty workout</button><p class="muted small">Or pick a routine below.</p></div>`;
   }
   h += weekCard();
   h += foodHomeCard();
@@ -1121,13 +1132,13 @@ function viewHome() {
   h += `<div class="sec-head"><h2 class="sec">My routines</h2>${rs.length > 3 ? `<button class="link" data-act="tab" data-tab="routines">See all ${rs.length}</button>` : ''}</div>`;
   if (rs.length) h += rs.slice(0, 3).map(routineCard).join('');
   else {
-    h += `<p class="empty">No routines yet. Start from a template, or build your own on the Routines tab.</p>`;
+    h += `<p class="empty">No routines yet. Try a template:</p>`;
     h += STARTERS.slice(0, 3).map(starterCard).join('');
   }
   const ws = workoutsSorted();
   h += `<div class="sec-head"><h2 class="sec">Recent</h2>${ws.length ? `<button class="link" data-act="tab" data-tab="history">All history</button>` : ''}</div>`;
   if (ws.length) h += ws.slice(0, 3).map(w => `<button class="card mini-hist" data-act="open-workout" data-wid="${w.id}"><div><div class="h3">${esc(w.name)}</div><div class="muted small">${fmtDateTime(w.start)}</div></div><div class="muted small num" style="font-size:1rem;text-align:right">${fmtDur((w.end || w.start) - w.start)}${(w.prs || []).length ? `<div class="pr">${ic('trophy')} ${(w.prs || []).length}</div>` : ''}</div></button>`).join('');
-  else h += `<div class="card"><p class="empty">Finished workouts show up here. Want to see how history and charts look first?</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
+  else h += `<div class="card"><p class="empty">No workouts yet.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
   return h;
 }
 function weekCard() {
@@ -1160,8 +1171,8 @@ function starterCard(st) {
 function viewRoutines() {
   let h = '';
   if (S.routines.length) h += S.routines.map(routineCard).join('');
-  else h += `<div class="card"><p class="empty">A routine is a saved list of exercises and sets. Build one, then start it from the Today tab whenever you train.</p><div style="margin-top:12px"><button class="btn primary" data-act="routine-new">${ic('plus')} Build a routine</button></div></div>`;
-  h += `<div class="sec-head"><h2 class="sec">Templates</h2></div><p class="muted small">Save one to make it yours, then change anything you like.</p>`;
+  else h += `<div class="card"><p class="empty">Save your usual workouts and start them in one tap.</p><div style="margin-top:12px"><button class="btn primary" data-act="routine-new">${ic('plus')} Build a routine</button></div></div>`;
+  h += `<div class="sec-head"><h2 class="sec">Templates</h2></div><p class="muted small">Save one, then make it yours.</p>`;
   h += STARTERS.map(starterCard).join('');
   return h;
 }
@@ -1170,7 +1181,7 @@ function viewRoutines() {
 function viewHistory() {
   const all = workoutsSorted();
   let h = demoBanner();
-  if (!all.length) return h + `<div class="card"><p class="empty">Nothing here yet. Finish a workout and it will appear with its sets, time and records.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
+  if (!all.length) return h + `<div class="card"><p class="empty">No workouts yet.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
   if (!UI.histMonth) { const d = new Date(); UI.histMonth = new Date(d.getFullYear(), d.getMonth(), 1).getTime(); }
   h += calendarCard(all);
   let list = all;
@@ -1235,13 +1246,13 @@ function viewProgress() {
   const exStats = new Map();
   for (const w of all) for (const e of w.exercises) { const d = e.sets.filter(s => s.done); if (!d.length) continue; const st = exStats.get(e.exId) || { n: 0, last: 0 }; st.n++; if (w.start > st.last) st.last = w.start; exStats.set(e.exId, st); }
   const exList = [...exStats.entries()].sort((a, b) => b[1].last - a[1].last);
-  h += `<div class="card"><div class="card-head"><h2 class="h3">Exercises</h2><span class="muted small">Tap one for its chart and records</span></div>`;
+  h += `<div class="card"><div class="card-head"><h2 class="h3">Exercises</h2><span class="muted small">Tap for charts</span></div>`;
   if (exList.length) {
     h += (UI.progAll ? exList : exList.slice(0, 8)).map(([id, st]) => { const ex = getEx(id); return `<button class="exrow" data-act="ex-detail" data-exid="${id}"><div><div style="font-weight:600">${esc(ex.name)}</div><div class="muted small">${esc(ex.muscle)} · ${st.n} session${st.n === 1 ? '' : 's'}</div></div><div class="r muted small">Last ${fmtShort(st.last)} ${ic('right')}</div></button>`; }).join('');
     if (exList.length > 8 && !UI.progAll) h += `<button class="link" data-act="prog-all">Show all ${exList.length}</button>`;
   } else h += `<p class="empty">Exercises you log will be listed here.</p>`;
   h += `</div>`;
-  if (!all.length) h += `<div class="card"><p class="empty">Charts fill in as you log workouts. You can load demo data to preview them.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
+  if (!all.length) h += `<div class="card"><p class="empty">Charts fill in as you log.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
   return h;
 }
 
@@ -1251,7 +1262,7 @@ function rowSeg(label, key, opts, sub = '') { return `<div class="row"><div clas
 function rowToggle(label, key, sub = '') { return `<div class="row"><div class="row-l" id="lbl-${key}">${label}${sub ? `<div class="small muted">${sub}</div>` : ''}</div><button class="switch" role="switch" aria-checked="${!!S.settings[key]}" aria-labelledby="lbl-${key}" data-act="toggle" data-key="${key}"></button></div>`; }
 function rowSelect(label, key, opts, sub = '') { const cur = String(S.settings[key]); return `<div class="row"><label class="row-l" for="set-${key}">${label}${sub ? `<div class="small muted">${sub}</div>` : ''}</label><select class="txt" id="set-${key}" data-setting="${key}">${opts.map(([v, l]) => `<option value="${v}" ${String(v) === cur ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`; }
 const REST_OPTS = [0, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300];
-const ACCENTS = [['red', 'Red'], ['chalk', 'Black and white only'], ['blue', 'Blue'], ['yellow', 'Yellow'], ['green', 'Green']];
+const ACCENTS = [['chalk', 'Black and white'], ['red', 'Red'], ['blue', 'Blue'], ['yellow', 'Yellow'], ['green', 'Green']];
 function viewMore() {
   const s = S.settings; const lb = s.unit === 'lb';
   const plateSet = lb ? [55, 45, 35, 25, 15, 10, 5, 2.5, 1.25] : [25, 20, 15, 10, 5, 2.5, 2, 1.25, 1, 0.5];
@@ -1262,30 +1273,31 @@ function viewMore() {
   <div class="card list">${rowSeg('Weight', 'unit', [['lb', 'lb'], ['kg', 'kg']])}${rowSeg('Distance', 'distUnit', [['mi', 'mi'], ['km', 'km']])}</div>
   <h2 class="sec">During a workout</h2>
   <div class="card list">
-    ${rowSelect('Default rest timer', 'rest', REST_OPTS.map(x => [x, x ? fmtTime(x) : 'Off']), 'You can change it per exercise')}
+    ${rowSelect('Default rest timer', 'rest', REST_OPTS.map(x => [x, x ? fmtTime(x) : 'Off']), 'Per exercise too')}
     ${rowToggle('Start rest timer when you check a set', 'restAuto')}
     ${rowToggle('Beep when rest ends', 'restSound')}
-    ${rowToggle('Vibrate when rest ends', 'restVibrate', 'On phones that support it')}
+    ${rowToggle('Vibrate when rest ends', 'restVibrate')}
     ${rowSelect('Sets for a new exercise', 'defaultSets', [1, 2, 3, 4, 5, 6].map(x => [x, x]))}
     ${rowToggle('Show previous column', 'showPrev', 'Last time’s numbers, tap to copy')}
-    ${rowToggle('Show RPE column', 'showRPE', 'Effort from 1 to 10')}
+    ${rowToggle('Show RPE column', 'showRPE', 'Effort, 1 to 10')}
   </div>
   <h2 class="sec">Goals and progress</h2>
   <div class="card list">
     ${rowSelect('Weekly workout goal', 'weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(x => [x, `${x} per week`]))}
     ${rowSeg('Week starts on', 'weekStart', [[0, 'Sun'], [1, 'Mon']])}
-    ${rowSeg('1RM formula', 'e1rm', [['epley', 'Epley'], ['brzycki', 'Brzycki']], 'Used for estimated max')}
+    ${rowSeg('1RM formula', 'e1rm', [['epley', 'Epley'], ['brzycki', 'Brzycki']])}
   </div>
   <h2 class="sec">Look</h2>
   <div class="card list">
     ${rowSeg('Theme', 'theme', [['system', 'Auto'], ['dark', 'Dark'], ['light', 'Light']])}
-    <div class="row"><div class="row-l">Accent color<div class="small muted">Red is the default</div></div><div class="swatches">${ACCENTS.map(([k, l]) => `<button class="sw" data-act="set" data-key="accent" data-val="${k}" aria-pressed="${s.accent === k}" aria-label="${l}" title="${l}" style="background:${{ blue: '#2563C9', red: '#C8101A', yellow: '#E8B511', green: '#2E9E57', chalk: 'linear-gradient(135deg,#000 50%,#fff 50%)' }[k]}"></button>`).join('')}</div></div>
+    <div class="row"><div class="row-l">Accent color</div><div class="swatches">${ACCENTS.map(([k, l]) => `<button class="sw" data-act="set" data-key="accent" data-val="${k}" aria-pressed="${s.accent === k}" aria-label="${l}" title="${l}" style="background:${{ blue: '#2563C9', red: '#C8101A', yellow: '#E8B511', green: '#2E9E57', chalk: 'linear-gradient(135deg,#000 50%,#fff 50%)' }[k]}"></button>`).join('')}</div></div>
+    ${rowToggle('Tint the background', 'tint', 'Uses your accent color')}
     ${rowSeg('Text size', 'size', [['m', 'Normal'], ['l', 'Large']])}
   </div>
   <h2 class="sec">Bar and plates</h2>
   <div class="card list">
     ${lb ? rowSelect('Bar weight', 'barLb', [45, 35, 33, 25, 20, 15].map(x => [x, x + ' lb'])) : rowSelect('Bar weight', 'barKg', [20, 15, 10, 7].map(x => [x, x + ' kg']))}
-    <div class="row" style="border-bottom:0;padding-bottom:0"><div class="row-l">Plates in your gym<div class="small muted">Used by the plate calculator</div></div></div>
+    <div class="row" style="border-bottom:0;padding-bottom:0"><div class="row-l">Plates in your gym</div></div>
     <div class="plates-pick">${plateSet.map(p => `<button class="chip ${have.includes(p) ? 'on' : ''}" data-act="plate-toggle" data-val="${p}" aria-pressed="${have.includes(p)}">${p} ${s.unit}</button>`).join('')}</div>
   </div>
   <h2 class="sec">Tools</h2>
@@ -1296,14 +1308,14 @@ function viewMore() {
   </div>
   <h2 class="sec">Your data</h2>
   <div class="card list">
-    <button class="row" data-act="export-json"><div class="row-l">Back up everything<div class="small muted">A .json file you can restore later</div></div>${ic('right', 'chev')}</button>
-    <button class="row" data-act="export-csv"><div class="row-l">Export sets as a spreadsheet<div class="small muted">A .csv file with every set</div></div>${ic('right', 'chev')}</button>
-    <button class="row" data-act="export-food"><div class="row-l">Export food log as a spreadsheet<div class="small muted">A .csv file with every food you logged</div></div>${ic('right', 'chev')}</button>
+    <button class="row" data-act="export-json"><div class="row-l">Back up everything<div class="small muted">Restore it any time</div></div>${ic('right', 'chev')}</button>
+    <button class="row" data-act="export-csv"><div class="row-l">Export sets as a spreadsheet<div class="small muted">Every set, as .csv</div></div>${ic('right', 'chev')}</button>
+    <button class="row" data-act="export-food"><div class="row-l">Export food log as a spreadsheet<div class="small muted">Every food, as .csv</div></div>${ic('right', 'chev')}</button>
     <button class="row" data-act="import"><div class="row-l">Restore from a backup</div>${ic('right', 'chev')}</button>
-    ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Six weeks of sample workouts, kept separate</div></div>${ic('right', 'chev')}</button>`}
+    ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Benchmark keeps everything on this phone and nothing is sent anywhere, except barcode numbers you scan, which are looked up in the free Open Food Facts database. Keep it on your Home Screen so your iPhone holds on to your data, and back up from time to time.</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.</p>`;
 }
 
 // =====================================================================
@@ -1402,7 +1414,7 @@ function editorHTML(ctx) {
   if (ctx === 'routine') {
     h += `<div class="field"><label class="lbl" for="r-name">Routine name</label><input id="r-name" class="txt" data-meta="name" value="${esc(w.name)}" placeholder="For example, Upper body A" autocomplete="off"></div>
     <div class="field"><label class="lbl" for="r-notes">Notes</label><textarea id="r-notes" class="txt" data-meta="notes" rows="2" placeholder="Optional">${esc(w.notes || '')}</textarea></div>
-    <p class="muted small">Numbers you enter here are targets. During the workout they show as hints, and checking a set fills them in.</p>`;
+    <p class="muted small">Numbers here are targets for your workout.</p>`;
   } else {
     h += `<input id="${ctx}-name" class="txt title-input" data-meta="name" value="${esc(w.name)}" aria-label="Workout name" autocomplete="off">`;
     if (ctx === 'edit') h += `<div class="grid3"><div class="field"><label class="lbl" for="e-date">Date</label><input type="date" class="txt" id="e-date" data-meta="_date" value="${esc(w._date)}"></div><div class="field"><label class="lbl" for="e-time">Start</label><input type="time" class="txt" id="e-time" data-meta="_time" value="${esc(w._time)}"></div><div class="field"><label class="lbl" for="e-dur">Min</label><input class="txt" id="e-dur" inputmode="numeric" data-meta="_dur" value="${esc(w._dur)}"></div></div>`;
@@ -1988,7 +2000,7 @@ function viewWeight() {
   const body = bodySorted(), cur = body[body.length - 1], P = S.settings.profile || {}; const now = Date.now();
   let h = '';
   if (!cur) {
-    h += `<div class="card"><div class="h3">Start your weight log</div><p class="muted" style="margin-top:4px">Weigh in at the same time of day, ideally in the morning, for the cleanest trend.</p><div style="margin-top:12px"><button class="btn primary" data-act="body-log">${ic('plus')} Log your weight</button></div></div>`;
+    h += `<div class="card"><div class="h3">Start your weight log</div><p class="muted" style="margin-top:4px">Weigh in at the same time each day.</p><div style="margin-top:12px"><button class="btn primary" data-act="body-log">${ic('plus')} Log your weight</button></div></div>`;
   } else {
     const ref30 = body.filter(b => b.d <= dayKey(now - 30 * DAY)).pop();
     const last7 = body.filter(b => b.d > dayKey(now - 7 * DAY)); const avg7 = last7.length ? last7.reduce((s, b) => s + b.kg, 0) / last7.length : null;
@@ -2010,7 +2022,7 @@ function viewWeight() {
   // plan
   const plan = planCalc();
   if (!plan) {
-    h += `<div class="card"><div class="h3">Get a food plan for your goal</div><p class="muted" style="margin-top:4px">Enter your age, sex, height, activity level and goal weight. You'll get daily calories, protein, carbs, fat and more, and you can send them to the Food tab in one tap.</p><div style="margin-top:12px"><button class="btn primary" data-act="profile-edit">Set up my plan</button></div></div>`;
+    h += `<div class="card"><div class="h3">Get a food plan for your goal</div><p class="muted" style="margin-top:4px">Daily calories and macros for your goal.</p><div style="margin-top:12px"><button class="btn primary" data-act="profile-edit">Set up my plan</button></div></div>`;
   } else {
     const verb = plan.dir < 0 ? 'Lose' : plan.dir > 0 ? 'Gain' : 'Maintain';
     const when = plan.weeks ? new Date(now + plan.weeks * 7 * DAY).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
@@ -2018,7 +2030,7 @@ function viewWeight() {
     h += `<div class="card"><div class="card-head"><h2 class="h3">Your daily plan</h2><button class="link" data-act="profile-edit">Edit details</button></div>
       <p class="muted">${verb}${plan.dir ? ` about ${fmtWU(plan.pace)} a week` : ' your weight'}${when ? `, reaching ${fmtWU(S.settings.profile.goalKg)} around <b style="color:var(--ink)">${when}</b>` : ''}.</p>
       <div class="cal-sum" style="margin-top:12px"><div><span class="big">${fmtBig(plan.cal)}</span> <span class="muted">calories a day</span></div></div>
-      <p class="muted small" style="margin-top:4px">Your body burns about ${fmtBig(Math.round(plan.tdee / 10) * 10)} a day at your activity level (${esc(plan.act[2].toLowerCase())}).</p>
+      <p class="muted small" style="margin-top:4px">You burn about ${fmtBig(Math.round(plan.tdee / 10) * 10)} a day.</p>
       <div class="records" style="margin-top:12px">
         <div class="rec"><div class="v">${plan.protein} g</div><div class="l">Protein</div></div>
         <div class="rec"><div class="v">${plan.carbs} g</div><div class="l">Carbs</div></div>
@@ -2029,7 +2041,7 @@ function viewWeight() {
       </div>
       ${plan.notes.map(n => `<p class="small" style="margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft)">${esc(n)}</p>`).join('')}
       <div style="margin-top:12px"><button class="btn ${applied ? 'ghost' : 'primary'} block" data-act="plan-apply">${applied ? `${ic('check')} These are your food goals` : 'Use these as my food goals'}</button></div>
-      <p class="muted small" style="margin-top:10px">Estimates from the Mifflin-St Jeor formula. Everyone's body differs, so check your weight trend after 2 to 3 weeks and adjust. If you have a medical condition, check with a doctor or dietitian.</p></div>`;
+      <p class="muted small" style="margin-top:10px">An estimate. Check your trend after 2 to 3 weeks and adjust. Have a medical condition? Ask your doctor.</p></div>`;
   }
   if (body.length) {
     h += `<div class="card" style="padding-top:4px;padding-bottom:4px"><div class="card-head" style="margin:10px 0 0"><h2 class="h3">Recent entries</h2>${body.length > 6 ? `<button class="link" data-act="body-all">All ${body.length}</button>` : ''}</div>${body.slice(-6).reverse().map((b, i, arr) => { const prev = body[body.length - 2 - i]; const dd = prev ? b.kg - prev.kg : null; return `<div class="exrow"><div><div style="font-weight:700">${fmtWU(b.kg)}</div><div class="muted small">${esc(dayLabel(b.d))}${b.demo ? ' · demo' : ''}</div></div><div class="r muted">${dd != null && Math.abs(dd) > 0.01 ? `${dd > 0 ? '+' : '−'}${fmtNum(toDispW(Math.abs(dd)), 1)}` : ''}</div></div>`; }).join('')}</div>`;
@@ -2040,7 +2052,7 @@ function openProfile() {
   const P = S.settings.profile || {}; const lb = U() === 'lb'; const cur = latestBody();
   let sex = P.sex || ''; const hIn = P.heightCm ? P.heightCm / 2.54 : null;
   const paces = paceOpts(); const curPace = P.paceKg || paces[1][0];
-  const d = openDialog(`<div class="dlg-title">Your details</div><p class="muted small">Used only to estimate your daily calories and nutrients. Saved privately with the rest of your data.</p>
+  const d = openDialog(`<div class="dlg-title">Your details</div><p class="muted small">Used only to estimate your plan.</p>
     <div class="grid2"><div class="field"><label class="lbl" for="pf-age">Age</label><input class="txt" id="pf-age" inputmode="numeric" value="${P.age || ''}" autocomplete="off"></div>
     <div class="field"><span class="lbl">Sex</span><div class="seg" role="group" style="width:100%"><button type="button" data-sex="m" aria-pressed="${sex === 'm'}" style="flex:1">Male</button><button type="button" data-sex="f" aria-pressed="${sex === 'f'}" style="flex:1">Female</button></div></div></div>
     ${lb ? `<div class="grid2"><div class="field"><label class="lbl" for="pf-ft">Height, feet</label><input class="txt" id="pf-ft" inputmode="numeric" value="${hIn ? Math.floor(Math.round(hIn) / 12) : ''}" autocomplete="off"></div><div class="field"><label class="lbl" for="pf-in">Inches</label><input class="txt" id="pf-in" inputmode="decimal" value="${hIn ? Math.round(hIn) % 12 : ''}" autocomplete="off"></div></div>`
@@ -2149,7 +2161,7 @@ function viewFood() {
   let h = `<div class="card daynav"><button class="icon-btn" data-act="food-prev" aria-label="Previous day">${ic('left')}</button><div style="text-align:center"><div class="h3">${esc(dayLabel(day))}</div>${isToday ? `<div class="muted small">${ents.length} item${ents.length === 1 ? '' : 's'} logged</div>` : `<button class="link" data-act="food-today">Back to today</button>`}</div><button class="icon-btn" data-act="food-next" aria-label="Next day" ${isToday ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button></div>`;
   h += `<div class="card"><div class="cal-sum"><div><span class="big">${fmtBig(tot.cal)}</span> <span class="muted">${calG ? `of ${fmtBig(calG)} calories` : 'calories'}</span></div>${calG ? `<span class="muted">${tot.cal <= calG ? fmtBig(calG - tot.cal) + ' left' : fmtBig(tot.cal - calG) + ' over'}</span>` : ''}</div>${calG ? `<div class="goalbar"><i style="width:${clamp(tot.cal / calG * 100, 0, 100)}%"></i></div>` : ''}
   <div class="nut-grid">${show.filter(k => k !== 'cal' && NK[k]).map(k => { const n = NK[k], g = G[k]; return `<div><div class="nut-top"><span>${n.l}</span><b>${fmtN(tot[k], k)}${g ? `<span class="muted" style="font-weight:400"> / ${fmtN(g, k)}</span>` : ''} ${n.u}</b></div>${g ? `<div class="goalbar thin"><i style="width:${clamp(tot[k] / g * 100, 0, 100)}%"></i></div>` : ''}</div>`; }).join('')}</div>
-  <button class="link" data-act="food-goals">Set goals and choose nutrients</button></div>`;
+  <button class="link" data-act="food-goals">Goals and nutrients</button></div>`;
   for (const [m, label] of MEALS) {
     const me = ents.filter(e => e.meal === m); const mc = me.reduce((s, e) => s + (e.cal || 0) * (e.qty || 1), 0);
     h += `<div class="card"><div class="card-head"><h2 class="h3">${label}</h2><span class="muted">${me.length ? fmtBig(mc) + ' cal' : ''}</span></div>${me.map(e => `<button class="exrow" data-act="food-edit" data-id="${e.id}"><div style="min-width:0"><div style="font-weight:700">${esc(e.name)}</div><div class="muted small">${esc(qtyLabel(e))}${e.p != null ? ` · ${fmtNum(e.p * (e.qty || 1), 1)} g protein` : ''}</div></div><div class="r"><b>${fmtBig((e.cal || 0) * (e.qty || 1))}</b> <span class="muted small">cal</span></div></button>`).join('')}<button class="btn ghost block" data-act="food-add" data-meal="${m}" style="margin-top:6px">${ic('plus')} Add to ${label.toLowerCase()}</button></div>`;
@@ -2180,7 +2192,7 @@ function renderFoodList() {
   let h = '';
   const rec = F.recent.map((f, i) => [f, i]).filter(([f]) => m(f)); if (rec.length) h += `<div class="pick-group">Recent</div>` + rec.map(([f, i]) => item('recent', f, String(i))).join('');
   const mine = S.foods.filter(m).sort((a, b) => a.name.localeCompare(b.name)); if (mine.length) h += `<div class="pick-group">My foods</div>` + mine.map(f => item('mine', f, f.id)).join('');
-  const bi = FOODS.filter(m); if (bi.length) h += `<div class="pick-group">Common foods</div><p class="muted small" style="padding:0 4px">Typical values. Your package label may differ.</p>` + bi.map(f => item('builtin', f, f.id)).join('');
+  const bi = FOODS.filter(m); if (bi.length) h += `<div class="pick-group">Common foods</div><p class="muted small" style="padding:0 4px">Typical values.</p>` + bi.map(f => item('builtin', f, f.id)).join('');
   if (!h) h = `<div class="empty-ex">Nothing matches “${esc(F.q)}”.<div style="margin-top:12px"><button class="btn soft" data-act="food-new">${ic('plus')} Enter “${esc(F.q)}” from its label</button></div></div>`;
   el.innerHTML = h;
 }
@@ -2393,7 +2405,7 @@ function snapLabel(code) {
 
 function openFoodGoals() {
   const G = S.settings.nutriGoals || {}, show = S.settings.nutriShow || [];
-  const d = openDialog(`<div class="dlg-title">Goals and nutrients</div><p class="muted small">Tick the nutrients you want to see. Goals are optional; leave one blank to just keep a count.</p>
+  const d = openDialog(`<div class="dlg-title">Goals and nutrients</div><p class="muted small">Goals are optional.</p>
     <div>${NUTR.map(n => `<div class="goal-row"><label class="check-row"><input type="checkbox" data-show="${n.k}" ${n.k === 'cal' || show.includes(n.k) ? 'checked' : ''} ${n.k === 'cal' ? 'disabled' : ''}> ${n.l}</label><input class="txt" data-goal="${n.k}" inputmode="decimal" value="${G[n.k] != null ? G[n.k] : ''}" placeholder="Goal, ${n.u}" aria-label="${n.l} goal in ${n.u}" autocomplete="off"></div>`).join('')}</div>
     <div class="foot-row"><button class="btn ghost" data-x="0">Cancel</button><button class="btn primary" data-x="1">Save</button></div>`);
   d.el.addEventListener('click', ev => {
@@ -2678,7 +2690,7 @@ const ACT = {
     const k = el.dataset.key; let v = el.dataset.val; if (NUM_SETTINGS.has(k)) v = Number(v);
     S.settings[k] = v; commit('settings'); applySettings(); renderAll();
   },
-  'toggle': el => { const k = el.dataset.key; S.settings[k] = !S.settings[k]; commit('settings'); el.setAttribute('aria-checked', String(S.settings[k])); if (k === 'restSound' && S.settings[k]) { unlockAudio(); beep(); } if (sheetEl('active')) renderEditor('active'); },
+  'toggle': el => { const k = el.dataset.key; S.settings[k] = !S.settings[k]; commit('settings'); el.setAttribute('aria-checked', String(S.settings[k])); if (k === 'tint') applySettings(); if (k === 'restSound' && S.settings[k]) { unlockAudio(); beep(); } if (sheetEl('active')) renderEditor('active'); },
   'plate-toggle': el => { const p = Number(el.dataset.val); const key = U() === 'lb' ? 'platesLb' : 'platesKg'; const a = S.settings[key].slice(); const i = a.indexOf(p); if (i >= 0) a.splice(i, 1); else a.push(p); S.settings[key] = a.sort((x, y) => y - x); commit('settings'); renderView(); },
   'tool-plates': () => openPlates(null),
   'tool-1rm': () => open1RM(),
