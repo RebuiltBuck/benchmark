@@ -419,12 +419,13 @@ body::before { content: ""; position: fixed; inset: -25%; z-index: -1; backgroun
 @keyframes drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4%, 3%, 0) scale(1.08); } 100% { transform: translate3d(-3%, 5%, 0) scale(1.03); } }
 html { background: var(--bar); }
 #app { position: fixed; inset: 0; }
-/* When iOS already keeps the app clear of the home indicator, don't pad for it a second time */
-html.inset-outside .tabs { padding-bottom: 6px; }
-html.inset-outside .tab-ind { height: calc(100% - 12px); }
-html.inset-outside .sheet-foot { padding-bottom: 10px; }
-html.inset-outside .dlg { padding-bottom: 16px; }
-html.inset-outside .scan-bottom { padding-bottom: 24px; }
+/* iOS 26 Home Screen apps get a viewport short by the status bar's height (WebKit 301108).
+   Making the page that much taller lets the app reach the bottom edge again. */
+@media (display-mode: standalone) {
+  html { height: min(100lvh, calc(100% + env(safe-area-inset-top))); min-height: min(100lvh, calc(100% + env(safe-area-inset-top))); }
+  body { position: relative; height: 100%; }
+  #app { position: absolute; top: 0; left: 0; right: 0; bottom: auto; height: 100%; }
+}
 .seg button { text-align: center; justify-content: center; }
 .topbar { background: transparent; }
 #view { padding-bottom: 28px; scroll-behavior: smooth; }
@@ -1323,7 +1324,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 6</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 7</p>`;
 }
 
 // =====================================================================
@@ -2770,7 +2771,7 @@ document.addEventListener('keydown', ev => {
 function fixInsets() {
   const standalone = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
   const gap = Math.max(screen.width, screen.height) - Math.max(window.innerWidth, window.innerHeight);
-  document.documentElement.classList.toggle('inset-outside', !!standalone && gap > 20);
+  document.documentElement.classList.remove('inset-outside'); void standalone; void gap;
 }
 fixInsets(); window.addEventListener('resize', fixInsets); window.addEventListener('orientationchange', () => setTimeout(fixInsets, 300));
 // iOS Home Screen apps can keep a shrunken screen after the keyboard closes; nudging the layout makes it re-measure.
