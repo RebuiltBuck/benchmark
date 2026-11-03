@@ -417,7 +417,7 @@ html:root.force-light { --bg: #F3F3F3; --surface: #FFFFFF; --surface-2: rgb(20 0
 html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transparent); --amb2: color-mix(in srgb, var(--accent) 30%, transparent); --amb3: color-mix(in srgb, var(--accent) 16%, transparent); }
 body::before { content: ""; position: fixed; inset: -25%; z-index: -1; background: var(--ambient); filter: blur(30px); animation: drift 26s ease-in-out infinite alternate; pointer-events: none; }
 @keyframes drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4%, 3%, 0) scale(1.08); } 100% { transform: translate3d(-3%, 5%, 0) scale(1.03); } }
-#app { position: relative; }
+#app { position: fixed; inset: 0; height: auto; }
 .topbar { background: transparent; }
 #view { padding-bottom: 28px; scroll-behavior: smooth; }
 
