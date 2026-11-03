@@ -514,7 +514,10 @@ button.card:active, .pick-item:active, .exrow:active { transform: scale(.985); }
 /* Entrances */
 @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.985); } }
 @keyframes fadein { from { opacity: 0; } }
-.enter .inner > *, .sheet.entering .inner > * { animation: rise .55s var(--ease) both; animation-delay: calc(min(var(--i, 0), 10) * 45ms); }
+.sheet.entering .inner > * { animation: rise .45s var(--ease) both; animation-delay: calc(min(var(--i, 0), 8) * 30ms); }
+.enter .inner > * { animation: tabin .2s ease-out both; }
+@keyframes tabin { from { opacity: .35; transform: translateY(5px); } }
+button, a, .chip, .tab { touch-action: manipulation; }
 .enter .topbar-in, #topbar.enter { animation: fadein .4s ease both; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1327,7 +1330,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 8</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 9</p>`;
 }
 
 // =====================================================================
@@ -2180,7 +2183,7 @@ function viewFood() {
   }
   const pts = []; let sum = 0, n = 0;
   for (let i = 6; i >= 0; i--) { const d = shiftDay(dayKey(Date.now()), -i); const t = sumN(dayEntries(d)); if (t.cal > 0) { sum += t.cal; n++; } pts.push({ label: new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short' }), y: Math.round(t.cal), cur: i === 0, tip: `<b>${fmtBig(t.cal)} cal</b> · ${fmtNum(t.p, 0)} g protein<br>${esc(dayLabel(d))}` }); }
-  CHARTS.set('food7', { kind: 'bar', pts, goal: calG || 0, every: 1, lastLabel: 'Today', padL: 42, aria: 'Calories per day', fmtY: v => v >= 1000 ? fmtNum(v / 1000, 1) + 'k' : String(v) });
+  CHARTS.set('food7', { kind: 'bar', pts, goal: calG || 0, every: 1, lastLabel: 'Today', padL: 42, aria: 'Calories per day', fmtY: v => v >= 1000 ? fmtNum(v / 1000, 1) + 'k' : fmtNum(v, 0) });
   h += `<div class="card"><div class="card-head"><h2 class="h3">Calories, last 7 days</h2><span class="muted small">${n ? `Average ${fmtBig(sum / n)} on days you logged` : ''}</span></div><div class="chart" data-chart="food7"></div></div>`;
   h += `<div class="btn-row"><button class="btn ghost" data-act="food-lib">My foods (${S.foods.length})</button><button class="btn ghost" data-act="food-copy">Copy the day before</button></div>`;
   return h;
@@ -2474,7 +2477,7 @@ function drawLine(el, spec) {
   const [y0, y1, step] = niceRange(Math.min(...ys, ...gy), Math.max(...ys, ...gy), spec.zero);
   const X = x => P.l + (x - x0) / (x1 - x0) * (W - P.l - P.r), Y = y => P.t + (1 - (y - y0) / (y1 - y0)) * (H - P.t - P.b);
   let g = '';
-  for (let v = y0; v <= y1 + step * 0.01; v += step) g += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>` + svgText(P.l - 8, Y(v) + 4, spec.fmtY(v), 'end');
+  for (let k = 0, v = y0; v <= y1 + step * 0.01; k++, v = Math.round((y0 + k * step) * 1e6) / 1e6) g += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>` + svgText(P.l - 8, Y(v) + 4, spec.fmtY(v), 'end');
   const xt = pts.length === 1 ? [pts[0].x] : [x0, x0 + (x1 - x0) / 2, x1];
   xt.forEach((t, i) => { g += svgText(X(t), H - 6, fmtShort(t), pts.length === 1 ? 'middle' : i === 0 ? 'start' : i === 2 ? 'end' : 'middle'); });
   if (spec.goal != null) g += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(spec.goal)}" y2="${Y(spec.goal)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4" opacity=".55"/>` + svgText(P.l + 4, Y(spec.goal) + 15, 'Goal ' + spec.fmtY(spec.goal), 'start', 'style="fill:var(--ink);font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:4px"');
@@ -2508,10 +2511,10 @@ function drawLine(el, spec) {
 function drawBars(el, spec) {
   const pts = spec.pts; const W = Math.max(240, el.clientWidth || 320), H = 170, P = { l: spec.padL || 26, r: 8, t: 14, b: 24 };
   const fy = spec.fmtY || String; const every = spec.every || 3;
-  const ymax = Math.max(spec.goal || 0, ...pts.map(p => p.y), 1); const step = spec.fmtY ? niceStep(ymax / 4) : (ymax > 8 ? 2 : 1); const y1 = Math.ceil(ymax / step) * step;
+  const ymax = Math.max(spec.goal || 0, ...pts.map(p => p.y), 1); const step = Math.max(1, spec.fmtY ? niceStep(ymax / 4) : (ymax > 8 ? 2 : 1)); const y1 = Math.ceil(ymax / step) * step;
   const Y = v => P.t + (1 - v / y1) * (H - P.t - P.b); const band = (W - P.l - P.r) / pts.length; const bw = Math.min(26, band * 0.62);
   let g = '';
-  for (let v = 0; v <= y1; v += step) g += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>` + svgText(P.l - 8, Y(v) + 4, fy(v), 'end');
+  for (let k = 0; k * step <= y1 + 1e-9; k++) { const v = Math.round(k * step * 1e6) / 1e6; g += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>` + svgText(P.l - 8, Y(v) + 4, fy(v), 'end'); }
   pts.forEach((p, i) => {
     const cx = P.l + band * (i + 0.5), x = cx - bw / 2, y = Y(p.y), base = Y(0), h = base - y, r = Math.min(4, h, bw / 2);
     if (p.y > 0) g += `<path d="M${x},${base}V${y + r}Q${x},${y} ${x + r},${y}H${x + bw - r}Q${x + bw},${y} ${x + bw},${y + r}V${base}Z" fill="url(#bg-${el.dataset.chart})" class="bar" style="animation-delay:${i * 35}ms" ${p.cur ? '' : 'opacity=".8"'}/>`;
@@ -2735,8 +2738,13 @@ const ACT = {
   'demo-clear': () => clearDemo(),
   'erase': () => eraseAll(),
 };
+document.addEventListener('pointerdown', ev => {
+  if (ev.button !== 0) return; const t = ev.target.closest('.tab[data-tab]'); if (!t) return;
+  t._pd = Date.now(); if (UI.tab !== t.dataset.tab) setTab(t.dataset.tab);
+});
 document.addEventListener('click', ev => {
   const el = ev.target.closest('[data-act]'); if (!el || el.disabled) return;
+  if (el.classList.contains('tab') && el._pd && Date.now() - el._pd < 1000) { ev.preventDefault(); return; }
   if (el.closest('.dlg')) return;
   const fn = ACT[el.dataset.act]; if (!fn) return;
   ev.preventDefault();
