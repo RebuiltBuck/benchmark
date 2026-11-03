@@ -1,5 +1,5 @@
 // Benchmark offline support. Bump VERSION with each new build.
-const VERSION = 'benchmark-v10';
+const VERSION = 'benchmark-v11';
 const SHELL = ['./', './index.html', './zxing.min.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => !k.startsWith(VERSION)).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

@@ -352,7 +352,7 @@ button.row { width: 100%; text-align: left; }
 .scanner.open { opacity: 1; }
 .scanner video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .scan-frame { position: absolute; left: 9%; right: 9%; top: 34%; height: 20%; border-radius: 22px; border: 2px solid rgb(255 255 255 / .9); box-shadow: 0 0 0 100vmax rgb(0 0 0 / .55); }
-.scan-line { position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: linear-gradient(90deg, transparent, #FF2B35, transparent); box-shadow: 0 0 14px #FF2B35; animation: scanline 1.5s ease-in-out infinite alternate; }
+.scan-line { position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: linear-gradient(90deg, transparent, var(--acc-d), transparent); box-shadow: 0 0 14px var(--acc-d); animation: scanline 1.5s ease-in-out infinite alternate; }
 @keyframes scanline { from { transform: translateY(-260%); } to { transform: translateY(260%); } }
 .scan-top { position: absolute; top: 0; left: 0; right: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 12px) 16px 12px; }
 .scan-title { font-weight: 700; font-size: 1.125rem; }
@@ -574,6 +574,21 @@ button, a, .chip, .tab { touch-action: manipulation; }
 #toast.has-action { pointer-events: auto; display: flex; align-items: center; gap: 14px; }
 .toast-undo { font-weight: 700; color: var(--accent); padding: 4px 6px; }
 
+/* Keep pop-ups and sheets from sliding sideways */
+.dlg, .sheet-body { overflow-x: hidden; }
+.dlg .field, .nut-inputs > *, .grid2 > *, .grid3 > * { min-width: 0; }
+.dlg input, .dlg select { max-width: 100%; min-width: 0; }
+.dlg input[type="date"], .dlg input[type="time"], .sheet-body input[type="date"], .sheet-body input[type="time"] { width: 100%; -webkit-appearance: none; appearance: none; display: block; }
+/* Black and white theme: no stray red */
+html:root[data-accent="chalk"] { --bad: var(--ink); }
+html:root[data-accent="chalk"] .btn.danger-text, html:root[data-accent="chalk"] .opt.danger { text-decoration: underline; text-underline-offset: 3px; }
+.gchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.gchip { min-height: 46px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); font-weight: 700; font-size: 1rem; transition: background .2s, color .2s, transform .18s var(--ease); }
+.gchip[aria-pressed="true"] { background: var(--accent-grad); color: var(--accent-ink); border-color: transparent; }
+.gchip:active { transform: scale(.95); }
+.gchips.days { gap: 6px; }
+.gchip.day { min-width: 0; flex: 1 1 0; padding: 0 4px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-delay: 0s !important; }
   html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transparent); --amb2: color-mix(in srgb, var(--accent) 30%, transparent); --amb3: color-mix(in srgb, var(--accent) 16%, transparent); }
@@ -775,6 +790,8 @@ const STARTERS = [
   { id: 'st-push', name: 'Push', blurb: 'Chest, shoulders and triceps', ex: [['Bench Press (Barbell)', 3, 8, 150, 1], ['Overhead Press (Barbell)', 3, 8, 120], ['Incline Bench Press (Dumbbell)', 3, 10, 90], ['Lateral Raise (Dumbbell)', 3, 12, 60], ['Triceps Pushdown', 3, 12, 60]] },
   { id: 'st-pull', name: 'Pull', blurb: 'Back and biceps', ex: [['Deadlift (Barbell)', 3, 5, 180, 1], ['Pull-up', 3, 8, 120], ['Bent Over Row (Barbell)', 3, 8, 120], ['Face Pull', 3, 15, 60], ['Hammer Curl', 3, 12, 60]] },
   { id: 'st-legs', name: 'Legs', blurb: 'Quads, hamstrings, calves and core', ex: [['Back Squat (Barbell)', 3, 5, 180, 1], ['Romanian Deadlift (Barbell)', 3, 8, 120], ['Leg Press', 3, 10, 120], ['Lying Leg Curl', 3, 12, 90], ['Standing Calf Raise', 4, 12, 60], ['Plank', 3, 60, 60]] },
+  { id: 'st-upper', name: 'Upper', blurb: 'Chest, back, shoulders and arms', ex: [['Bench Press (Barbell)', 3, 8, 150, 1], ['Bent Over Row (Barbell)', 3, 8, 120], ['Overhead Press (Barbell)', 3, 10, 120], ['Lat Pulldown', 3, 10, 90], ['Bicep Curl (Dumbbell)', 3, 12, 60], ['Triceps Pushdown', 3, 12, 60]] },
+  { id: 'st-lower', name: 'Lower', blurb: 'Legs and core', ex: [['Back Squat (Barbell)', 3, 5, 180, 1], ['Romanian Deadlift (Barbell)', 3, 8, 120], ['Leg Press', 3, 10, 120], ['Lying Leg Curl', 3, 12, 90], ['Standing Calf Raise', 4, 12, 60], ['Hanging Leg Raise', 3, 12, 60]] },
   { id: 'st-full', name: 'Full Body', blurb: 'Three big lifts and a plank', ex: [['Back Squat (Barbell)', 3, 5, 150, 1], ['Bench Press (Barbell)', 3, 5, 150], ['Bent Over Row (Barbell)', 3, 8, 120], ['Plank', 3, 45, 60]] },
   { id: 'st-cardio', name: 'Cardio and Core', blurb: 'Treadmill, then abs', ex: [['Treadmill', 1, 1200, 60], ['Hanging Leg Raise', 3, 12, 60], ['Russian Twist', 3, 20, 45], ['Plank', 3, 45, 45]] },
 ];
@@ -1398,7 +1415,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 10</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 11</p>`;
 }
 
 // =====================================================================
@@ -2967,31 +2984,54 @@ function maybeOnboard() {
   if (hasData) { S.settings.onboarded = true; commit('settings'); return; }
   openSetup();
 }
-function openSetup() { UI.setup = { step: 0, unit: S.settings.unit, goal: S.settings.goal || '', plan: '' }; renderSetup(); }
+const SETUP_GOALS = [['muscle', 'Build muscle'], ['strength', 'Get stronger'], ['fat', 'Lose fat'], ['gain', 'Gain weight'], ['endurance', 'Improve endurance'], ['tone', 'Tone up'], ['sport', 'Train for a sport'], ['health', 'Stay healthy']];
+const SETUP_PLANS = [
+  ['ppl', 'Push, Pull, Legs', 'Chest and arms, back, then legs', ['st-push', 'st-pull', 'st-legs'], [1, 3, 5]],
+  ['ppl2', 'Push, Pull, Legs twice', 'Each workout twice a week', ['st-push', 'st-pull', 'st-legs'], [1, 2, 3, 4, 5, 6]],
+  ['ul', 'Upper and Lower', 'Upper body, then lower body', ['st-upper', 'st-lower'], [1, 2, 4, 5]],
+  ['full', 'Full Body', 'Everything in each workout', ['st-full'], [1, 3, 5]],
+  ['full2', 'Full Body, short week', 'Two full-body days', ['st-full'], [2, 5]],
+  ['cardio', 'Cardio and Core', 'Treadmill plus abs', ['st-cardio'], [1, 3, 5]],
+  ['own', 'I’ll build my own', 'Start with a blank slate', [], []],
+];
+function openSetup() { UI.setup = { step: 0, unit: S.settings.unit, goals: (S.settings.goals || []).slice(), goalText: S.settings.goalText || '', plan: '', days: [] }; renderSetup(); }
 function renderSetup() {
   const s = UI.setup; if (!s) return; const N = 4;
-  const choice = (act, v, cur, label, sub) => `<button class="choice" data-act="${act}" data-v="${v}" aria-pressed="${cur === v}"><span>${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="pick-mark">${ic('check')}</span></button>`;
+  const choice = (act, v, on, label, sub) => `<button class="choice" data-act="${act}" data-v="${v}" aria-pressed="${on}"><span>${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="pick-mark">${ic('check')}</span></button>`;
   let body = `<div class="setup-dots">${Array.from({ length: N }, (_, i) => `<i class="${i === s.step ? 'on' : ''}"></i>`).join('')}</div>`, foot = '';
+  const nav = (back, next = 'Next') => `<div class="foot-row">${back ? `<button class="btn ghost lg" data-act="setup-back">Back</button>` : ''}<button class="btn primary lg" data-act="setup-next">${next}</button></div>`;
   if (s.step === 0) {
-    body += `<div class="setup-hero">Welcome to Benchmark</div><p class="muted">Track workouts, food and weight in one place. A few quick choices and you're set.</p><h2 class="sec">Units</h2>${choice('setup-unit', 'lb', s.unit, 'Pounds and miles', 'lb, mi, inches')}${choice('setup-unit', 'kg', s.unit, 'Kilograms and kilometers', 'kg, km, centimeters')}`;
-    foot = `<div class="foot-row"><button class="btn primary lg" data-act="setup-next">Next</button></div>`;
+    body += `<div class="setup-hero">Welcome to Benchmark</div><p class="muted">Track workouts, food and weight in one place. A few quick choices and you're set.</p><h2 class="sec">Units</h2>${choice('setup-unit', 'lb', s.unit === 'lb', 'Pounds and miles', 'lb, mi, inches')}${choice('setup-unit', 'kg', s.unit === 'kg', 'Kilograms and kilometers', 'kg, km, centimeters')}`;
+    foot = nav(false);
   } else if (s.step === 1) {
-    body += `<div class="setup-hero">What's your main goal?</div>${choice('setup-goal', 'muscle', s.goal, 'Build muscle')}${choice('setup-goal', 'strength', s.goal, 'Get stronger')}${choice('setup-goal', 'fat', s.goal, 'Lose fat')}${choice('setup-goal', 'health', s.goal, 'Stay healthy and active')}`;
-    foot = `<div class="foot-row"><button class="btn ghost lg" data-act="setup-back">Back</button><button class="btn primary lg" data-act="setup-next">Next</button></div>`;
+    body += `<div class="setup-hero">What are your goals?</div><p class="muted">Pick as many as you like.</p><div class="gchips">${SETUP_GOALS.map(([k, l]) => `<button class="gchip" data-act="setup-goal" data-v="${k}" aria-pressed="${s.goals.includes(k)}">${l}</button>`).join('')}</div>
+      <div class="field"><label class="lbl" for="su-goal">Something else?</label><input class="txt" id="su-goal" value="${esc(s.goalText)}" placeholder="For example, run a 5K or hike a mountain" autocomplete="off"></div>`;
+    foot = nav(true);
   } else if (s.step === 2) {
-    body += `<div class="setup-hero">Pick a starting plan</div><p class="muted">You can change any of it later.</p>${choice('setup-plan', 'ppl', s.plan, 'Push, Pull, Legs', 'Monday, Wednesday and Friday')}${choice('setup-plan', 'full', s.plan, 'Full Body', 'Monday, Wednesday and Friday')}${choice('setup-plan', 'own', s.plan, 'I’ll build my own')}`;
-    foot = `<div class="foot-row"><button class="btn ghost lg" data-act="setup-back">Back</button><button class="btn primary lg" data-act="setup-next">Next</button></div>`;
+    const order = Array.from({ length: 7 }, (_, i) => (i + S.settings.weekStart) % 7); const pl = SETUP_PLANS.find(x => x[0] === s.plan);
+    body += `<div class="setup-hero">Pick a starting plan</div><p class="muted">You can change any of it later.</p>${SETUP_PLANS.map(([k, l, sub, , days]) => choice('setup-plan', k, s.plan === k, l, sub + (days.length ? ` · ${days.length} days a week` : ''))).join('')}
+      ${pl && pl[3].length ? `<h2 class="sec">Training days</h2><div class="gchips days">${order.map(d => `<button class="gchip day" data-act="setup-day" data-v="${d}" aria-pressed="${s.days.includes(d)}" aria-label="${DOW(d)}">${DOW(d).slice(0, 3)}</button>`).join('')}</div><p class="muted small">Workouts rotate through the days you pick.</p>` : ''}`;
+    foot = nav(true);
   } else {
     body += `<div class="setup-hero">Want a food plan?</div><p class="muted">Benchmark can set your daily calories and protein from your age, height and goal weight.</p>`;
     foot = `<div class="foot-row"><button class="btn ghost lg" data-act="setup-finish" data-v="0">Maybe later</button><button class="btn primary lg" data-act="setup-finish" data-v="1">Set it up</button></div>`;
   }
-  openSheet('setup', { title: 'Setup', right: `<button class="btn ghost sm" data-act="setup-finish" data-v="0">Skip</button>`, body, foot });
+  const el = openSheet('setup', { title: 'Setup', right: `<button class="btn ghost sm" data-act="setup-finish" data-v="0">Skip</button>`, body, foot });
+  return el;
+}
+function setupNext() {
+  const s = UI.setup; if (!s) return;
+  if (s.step === 2) { const pl = SETUP_PLANS.find(x => x[0] === s.plan); if (pl && pl[3].length && !s.days.length) { toast('Pick at least one training day'); return; } }
+  s.step = Math.min(3, s.step + 1); renderSetup(); const b = $('#sheet-setup .sheet-body'); if (b) b.scrollTop = 0;
 }
 function finishSetup(thenProfile) {
-  const s = UI.setup; if (!s) return; S.settings.unit = s.unit; if (s.goal) S.settings.goal = s.goal;
-  const add = id => { const r = starterToRoutine(STARTERS.find(x => x.id === id)); S.routines.push(r); return r.id; };
-  if (s.plan === 'ppl') { const ids = ['st-push', 'st-pull', 'st-legs'].map(add); S.settings.schedule = { 1: ids[0], 3: ids[1], 5: ids[2] }; commit('routines'); }
-  if (s.plan === 'full') { const id = add('st-full'); S.settings.schedule = { 1: id, 3: id, 5: id }; commit('routines'); }
+  const s = UI.setup; if (!s) return; S.settings.unit = s.unit; S.settings.goals = s.goals; S.settings.goalText = (s.goalText || '').trim();
+  const pl = SETUP_PLANS.find(x => x[0] === s.plan);
+  if (pl && pl[3].length && s.days.length) {
+    const ids = pl[3].map(id => { const r = starterToRoutine(STARTERS.find(x => x.id === id)); S.routines.push(r); return r.id; });
+    const order = Array.from({ length: 7 }, (_, i) => (i + S.settings.weekStart) % 7).filter(d => s.days.includes(d));
+    const sch = {}; order.forEach((d, i) => { sch[d] = ids[i % ids.length]; }); S.settings.schedule = sch; commit('routines');
+  }
   S.settings.onboarded = true; commit('settings'); applySettings(); UI.setup = null; closeSheet('setup'); renderAll();
   if (thenProfile) setTimeout(openProfile, 380); else toast('You’re all set');
 }
@@ -3284,9 +3324,10 @@ const ACT = {
   'meas-del': el => deleteMeas(el.dataset.d),
   'setup-open': () => openSetup(),
   'setup-unit': el => { UI.setup.unit = el.dataset.v; renderSetup(); },
-  'setup-goal': el => { UI.setup.goal = el.dataset.v; renderSetup(); },
-  'setup-plan': el => { UI.setup.plan = el.dataset.v; renderSetup(); },
-  'setup-next': () => { UI.setup.step = Math.min(3, UI.setup.step + 1); renderSetup(); },
+  'setup-goal': el => { const g = UI.setup.goals, v = el.dataset.v, i = g.indexOf(v); if (i >= 0) g.splice(i, 1); else g.push(v); el.setAttribute('aria-pressed', String(i < 0)); },
+  'setup-plan': el => { const pl = SETUP_PLANS.find(x => x[0] === el.dataset.v); UI.setup.plan = el.dataset.v; UI.setup.days = pl ? pl[4].slice() : []; renderSetup(); },
+  'setup-day': el => { const d = UI.setup.days, v = Number(el.dataset.v), i = d.indexOf(v); if (i >= 0) d.splice(i, 1); else d.push(v); el.setAttribute('aria-pressed', String(i < 0)); },
+  'setup-next': () => setupNext(),
   'setup-back': () => { UI.setup.step = Math.max(0, UI.setup.step - 1); renderSetup(); },
   'setup-finish': el => finishSetup(el.dataset.v === '1'),
   'food-prev': () => { UI.foodDay = shiftDay(UI.foodDay, -1); renderView(); },
@@ -3342,6 +3383,7 @@ document.addEventListener('input', ev => {
   else if (t.id === 'lib-search') { if (UI.lib) { UI.lib.q = t.value; renderLib(); } }
   else if (t.id === 'food-search') { if (UI.fadd) { UI.fadd.q = t.value; renderFoodList(); } }
   else if (t.id === 'g-search') renderSearch(t.value);
+  else if (t.id === 'su-goal') { if (UI.setup) UI.setup.goalText = t.value; }
   else if (t.id === 'rc-name') { if (UI.recipe) UI.recipe.name = t.value; }
   else if (t.id === 'rc-serv') { if (UI.recipe) { UI.recipe.servings = Math.max(1, parseInt(t.value, 10) || 1); const el = $('#rc-per'); if (el) el.innerHTML = recipePerHTML(recipePerServing(UI.recipe)); } }
 });
