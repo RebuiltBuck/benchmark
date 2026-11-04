@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-accent="chalk" data-tint="off" data-size="m">
+<html lang="en" data-accent="chalk" data-tint="off" data-size="l">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -1153,7 +1153,7 @@ const TABS = [['home', 'Home', 'home'], ['workout', 'Workout', 'dumbbell'], ['fo
 const WSUBS = [['routines', 'Routines'], ['history', 'History'], ['progress', 'Progress']];
 function applySettings() {
   const h = document.documentElement, s = S.settings;
-  h.dataset.accent = s.accent; h.dataset.size = s.size; h.dataset.tint = s.tint ? 'on' : 'off';
+  h.dataset.accent = s.accent; h.dataset.size = 'l'; h.dataset.tint = s.tint ? 'on' : 'off';
   h.classList.toggle('force-dark', s.theme === 'dark');
   h.classList.toggle('force-light', s.theme === 'light');
 }
@@ -1226,19 +1226,12 @@ function viewHome() {
     h += `<button class="card resume" data-act="resume"><div><div class="eyebrow">Workout in progress</div><div class="h3">${esc(S.active.name)}</div><div class="muted small"><span class="num" data-elapsed></span> · ${S.active.exercises.length} exercise${S.active.exercises.length === 1 ? '' : 's'} · ${doneCount(S.active)} sets done</div></div><span class="btn primary">Resume</span></button>`;
   } else {
     const plan = todayPlanCard(); h += plan; const planned = plan.includes('data-act="start-routine"');
-    h += `<div class="card start"><button class="btn ${planned ? 'ghost' : 'primary'} lg block" data-act="start-empty">${ic('plus')} Start an empty workout</button>${planned ? '' : '<p class="muted small">Or pick a routine below.</p>'}</div>`;
+    h += `<div class="card start"><button class="btn ${planned ? 'ghost' : 'primary'} lg block" data-act="start-empty">${ic('plus')} Start an empty workout</button></div>`;
   }
   h += recapHomeCard();
   h += weekCard();
   h += foodHomeCard();
   h += weightHomeCard();
-  const rs = S.routines;
-  h += `<div class="sec-head"><h2 class="sec">My routines</h2>${rs.length > 3 ? `<button class="link" data-act="tab" data-tab="routines">See all ${rs.length}</button>` : ''}</div>`;
-  if (rs.length) h += rs.slice(0, 3).map(routineCard).join('');
-  else {
-    h += `<p class="empty">No routines yet. Try a template:</p>`;
-    h += STARTERS.slice(0, 3).map(starterCard).join('');
-  }
   const ws = workoutsSorted();
   h += `<div class="sec-head"><h2 class="sec">Recent</h2>${ws.length ? `<button class="link" data-act="tab" data-tab="history">All history</button>` : ''}</div>`;
   if (ws.length) h += ws.slice(0, 3).map(w => `<button class="card mini-hist" data-act="open-workout" data-wid="${w.id}"><div><div class="h3">${esc(w.name)}</div><div class="muted small">${fmtDateTime(w.start)}</div></div><div class="muted small num" style="font-size:1rem;text-align:right">${fmtDur((w.end || w.start) - w.start)}${(w.prs || []).length ? `<div class="pr">${ic('trophy')} ${(w.prs || []).length}</div>` : ''}</div></button>`).join('');
@@ -1399,7 +1392,6 @@ function viewMore() {
     ${rowSeg('Theme', 'theme', [['system', 'Auto'], ['dark', 'Dark'], ['light', 'Light']])}
     <div class="row"><div class="row-l">Accent color</div><div class="swatches">${ACCENTS.map(([k, l]) => `<button class="sw" data-act="set" data-key="accent" data-val="${k}" aria-pressed="${s.accent === k}" aria-label="${l}" title="${l}" style="background:${{ blue: '#2563C9', red: '#C8101A', yellow: '#E8B511', green: '#2E9E57', chalk: 'linear-gradient(135deg,#000 50%,#fff 50%)' }[k]}"></button>`).join('')}</div></div>
     ${rowToggle('Tint the background', 'tint', 'Uses your accent color')}
-    ${rowSeg('Text size', 'size', [['m', 'Normal'], ['l', 'Large']])}
   </div>
   <h2 class="sec">Bar and plates</h2>
   <div class="card list">
@@ -1423,7 +1415,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 14</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 15</p>`;
 }
 
 // =====================================================================
@@ -2341,7 +2333,7 @@ function viewFood() {
 function openFoodAdd(meal) {
   UI.fadd = { meal: meal || mealGuess(), day: UI.foodDay || dayKey(Date.now()), q: '', recent: [] };
   openSheet('foodadd', { title: `Add to ${mealName(UI.fadd.meal).toLowerCase()}`, left: closeBtn('foodadd', 'Cancel'), onClose: () => { UI.fadd = null; },
-    body: `<div class="pick-top"><div class="search">${ic('search')}<input class="txt" id="food-search" type="search" placeholder="Search foods" autocomplete="off" aria-label="Search foods"></div><div class="scan-grid"><button class="btn primary" data-act="food-scan" ${window.claude ? '' : 'style="grid-column:1/-1"'}>${ic('barcode')} Scan barcode</button>${window.claude ? `<button class="btn soft" data-act="food-label">${ic('camera')} Snap a label</button>` : ''}<button class="btn ghost" data-act="food-new">Type a label</button><button class="btn ghost" data-act="food-quick">Quick add</button></div></div><div class="pick-list" id="food-list"></div>` });
+    body: `<div class="pick-top"><div class="search">${ic('search')}<input class="txt" id="food-search" type="search" placeholder="Search foods" autocomplete="off" aria-label="Search foods"></div><div class="scan-grid"><button class="btn primary" data-act="food-scan" ${window.claude ? '' : 'style="grid-column:1/-1"'}>${ic('barcode')} Scan barcode</button>${window.claude ? `<button class="btn soft" data-act="food-label">${ic('camera')} Snap a label</button>` : ''}<button class="btn ghost" data-act="food-new">Type a label</button><button class="btn ghost" data-act="food-recipe">${ic('plus')} Create recipe</button></div></div><div class="pick-list" id="food-list"></div>` });
   renderFoodList();
 }
 function recentFoods() {
@@ -2817,6 +2809,7 @@ function saveRecipe() {
   const f = { id: R.id || 'f-' + uid(), name, serv: `1 of ${servings} servings`, recipe: { servings, items: R.items }, ...recipePerServing({ ...R, servings }) };
   const i = S.foods.findIndex(x => x.id === f.id); if (i >= 0) S.foods[i] = f; else S.foods.push(f);
   commit('foods'); UI.recipe = null; closeSheet('recipe'); if (sheetEl('foodlib')) openFoodLib(); toast(`Saved ${name}`);
+  const L = UI.recipeLog; UI.recipeLog = null; if (L) setTimeout(() => openFoodForm({ mode: 'add', base: clone(f), meal: L.meal, day: L.day, isMine: true }), 260);
 }
 
 // ---------- weight: trend, coach, measurements ----------
@@ -3365,11 +3358,12 @@ const ACT = {
   'meal-menu': el => mealMenu(el.dataset.meal),
   'smeal-add': el => addSavedMeal(el.dataset.id),
   'smeal-manage': el => manageSavedMeal(el.dataset.id),
-  'recipe-new': () => openRecipe(null),
+  'recipe-new': () => { UI.recipeLog = null; openRecipe(null); },
+  'food-recipe': () => { const F = UI.fadd; UI.recipeLog = { meal: F ? F.meal : mealGuess(), day: F ? F.day : UI.foodDay }; closeSheet('foodadd'); openRecipe(null); },
   'rc-add': () => openIngredientPicker(),
   'rc-del': el => { if (!UI.recipe) return; const i = +el.dataset.i; const it = UI.recipe.items.splice(i, 1)[0]; renderRecipe(); undoToast(`Removed ${it.name}`, () => { UI.recipe.items.splice(i, 0, it); renderRecipe(); }); },
   'rc-save': () => saveRecipe(),
-  'rc-cancel': () => { UI.recipe = null; closeSheet('recipe'); },
+  'rc-cancel': () => { UI.recipe = null; UI.recipeLog = null; closeSheet('recipe'); },
   'coach-apply': el => applyCoach(Number(el.dataset.adj)),
   'meas-log': () => logMeas(),
   'meas-hist': () => openMeasHist(),
