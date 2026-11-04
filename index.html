@@ -418,6 +418,7 @@ html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transp
 body::before { content: ""; position: fixed; inset: -25%; z-index: -1; background: var(--ambient); filter: blur(30px); animation: drift 26s ease-in-out infinite alternate; pointer-events: none; }
 @keyframes drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4%, 3%, 0) scale(1.08); } 100% { transform: translate3d(-3%, 5%, 0) scale(1.03); } }
 html { background: var(--bar); }
+body { background: transparent; }
 #app { position: fixed; inset: 0; }
 /* iOS 26 Home Screen apps get a viewport short by the status bar's height (WebKit 301108).
    Making the page that much taller lets the app reach the bottom edge again. */
@@ -1422,7 +1423,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 13</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 14</p>`;
 }
 
 // =====================================================================
