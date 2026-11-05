@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-accent="chalk" data-tint="off" data-size="l">
+<html lang="en" data-accent="color" data-tint="on" data-size="l">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -69,6 +69,12 @@ html[data-accent="blue"]   { --acc-l: #1E5BD0; --acc-d: #5D9BFF; --acc-ink-l: #F
 html[data-accent="red"]    { --acc-l: #C8101A; --acc-d: #E3141E; --acc-ink-l: #FFFFFF; --acc-ink-d: #FFFFFF; }
 html[data-accent="yellow"] { --acc-l: #8A6500; --acc-d: #F2C230; --acc-ink-l: #FFFFFF; --acc-ink-d: #221A00; }
 html[data-accent="green"]  { --acc-l: #157444; --acc-d: #45CF86; --acc-ink-l: #FFFFFF; --acc-ink-d: #06200F; }
+html[data-accent="color"]  { --acc-l: #6250D6; --acc-d: #9085E9; --acc-ink-l: #FFFFFF; --acc-ink-d: #120C33; }
+/* macro colors: one hue per nutrient so the rings read at a glance (validated for color-blind separation in ring order) */
+html { --m-cal: light-dark(#2A78D6, #3987E5); --m-p: light-dark(#EB6834, #D95926); --m-c: light-dark(#1BAF7A, #199E70); --m-f: light-dark(#EDA100, #C98500); }
+html[data-accent="chalk"] { --m-cal: var(--accent); --m-p: var(--accent); --m-c: var(--accent); --m-f: var(--accent); }
+html:not([data-accent="chalk"]) .rings .ring { stroke-opacity: 1; }
+html:not([data-accent="chalk"]) .rl i { opacity: 1 !important; }
 html[data-accent="chalk"]  { --acc-l: #111111; --acc-d: #F2F2F2; --acc-ink-l: #FFFFFF; --acc-ink-d: #000000; }
 html[data-size="l"] { font-size: 18px; }
 
@@ -421,6 +427,7 @@ html:root.force-light { --bg: #F3F3F3; --surface: #FFFFFF; --surface-2: rgb(20 0
   --shadow: 0 10px 30px -12px rgb(60 0 0 / .18), 0 1px 2px rgb(0 0 0 / .05); }
 
 html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transparent); --amb2: color-mix(in srgb, var(--accent) 30%, transparent); --amb3: color-mix(in srgb, var(--accent) 16%, transparent); }
+html:root[data-tint="on"][data-accent="color"] { --amb1: color-mix(in srgb, var(--accent) 38%, transparent); --amb2: color-mix(in srgb, var(--m-cal) 28%, transparent); --amb3: color-mix(in srgb, var(--m-c) 20%, transparent); }
 body::before { content: ""; position: fixed; inset: -25%; z-index: -1; background: var(--ambient); filter: blur(30px); animation: drift 26s ease-in-out infinite alternate; pointer-events: none; }
 @keyframes drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4%, 3%, 0) scale(1.08); } 100% { transform: translate3d(-3%, 5%, 0) scale(1.03); } }
 html { background: var(--bar); }
@@ -828,14 +835,14 @@ function starterToRoutine(st) {
 const DEFAULT_SETTINGS = {
   unit: 'lb', distUnit: 'mi', rest: 90, restAuto: true, restSound: true, restVibrate: true,
   showRPE: false, showPrev: true, defaultSets: 3, weeklyGoal: 3, e1rm: 'epley', weekStart: 1,
-  theme: 'system', accent: 'chalk', tint: false, size: 'm', barLb: 45, barKg: 20,
+  theme: 'system', accent: 'color', tint: true, size: 'm', barLb: 45, barKg: 20,
   platesLb: [45, 35, 25, 10, 5, 2.5], platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
-  nutriShow: ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na'], nutriGoals: {}, themeV: 3, schedule: {}, progression: true, waterGoal: 8, onboarded: false, goal: '',
+  nutriShow: ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na'], nutriGoals: {}, themeV: 4, schedule: {}, progression: true, waterGoal: 8, onboarded: false, goal: '',
 };
 const DOC_KEYS = ['settings', 'library', 'routines', 'body', 'active', 'foods', 'smeals', 'meas'];
 const EMPTY = { settings: {}, library: [], routines: [], body: [], active: null, foods: [], smeals: [], meas: [] };
 // Older saves predate the black, white and red theme: move them onto it once.
-function migrateSettings(raw) { if (raw && raw.themeV !== 3) { S.settings.accent = 'chalk'; S.settings.tint = false; S.settings.themeV = 3; S.settingsAt = Date.now(); } }
+function migrateSettings(raw) { if (raw && raw.themeV !== 4) { if (raw.themeV !== 3 || S.settings.accent === 'chalk') { S.settings.accent = 'color'; S.settings.tint = true; } S.settings.themeV = 4; S.settingsAt = Date.now(); } }
 const S = {
   settings: { ...DEFAULT_SETTINGS }, settingsAt: 0,
   library: [], libraryAt: 0,
@@ -1514,7 +1521,7 @@ function rowSeg(label, key, opts, sub = '') { return `<div class="row"><div clas
 function rowToggle(label, key, sub = '') { return `<div class="row"><div class="row-l" id="lbl-${key}">${label}${sub ? `<div class="small muted">${sub}</div>` : ''}</div><button class="switch" role="switch" aria-checked="${!!S.settings[key]}" aria-labelledby="lbl-${key}" data-act="toggle" data-key="${key}"></button></div>`; }
 function rowSelect(label, key, opts, sub = '') { const cur = String(S.settings[key]); return `<div class="row"><label class="row-l" for="set-${key}">${label}${sub ? `<div class="small muted">${sub}</div>` : ''}</label><select class="txt" id="set-${key}" data-setting="${key}">${opts.map(([v, l]) => `<option value="${v}" ${String(v) === cur ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`; }
 const REST_OPTS = [0, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300];
-const ACCENTS = [['chalk', 'Black and white'], ['red', 'Red'], ['blue', 'Blue'], ['yellow', 'Yellow'], ['green', 'Green']];
+const ACCENTS = [['color', 'Color'], ['chalk', 'Black and white'], ['red', 'Red'], ['blue', 'Blue'], ['yellow', 'Yellow'], ['green', 'Green']];
 function viewMore() {
   const s = S.settings; const lb = s.unit === 'lb';
   const plateSet = lb ? [55, 45, 35, 25, 15, 10, 5, 2.5, 1.25] : [25, 20, 15, 10, 5, 2.5, 2, 1.25, 1, 0.5];
@@ -1543,8 +1550,8 @@ function viewMore() {
   <h2 class="sec">Look</h2>
   <div class="card list">
     ${rowSeg('Theme', 'theme', [['system', 'Auto'], ['dark', 'Dark'], ['light', 'Light']])}
-    <div class="row"><div class="row-l">Accent color</div><div class="swatches">${ACCENTS.map(([k, l]) => `<button class="sw" data-act="set" data-key="accent" data-val="${k}" aria-pressed="${s.accent === k}" aria-label="${l}" title="${l}" style="background:${{ blue: '#2563C9', red: '#C8101A', yellow: '#E8B511', green: '#2E9E57', chalk: 'linear-gradient(135deg,#000 50%,#fff 50%)' }[k]}"></button>`).join('')}</div></div>
-    ${rowToggle('Tint the background', 'tint', 'Uses your accent color')}
+    <div class="row"><div class="row-l">Accent color</div><div class="swatches">${ACCENTS.map(([k, l]) => `<button class="sw" data-act="set" data-key="accent" data-val="${k}" aria-pressed="${s.accent === k}" aria-label="${l}" title="${l}" style="background:${{ blue: '#2563C9', red: '#C8101A', yellow: '#E8B511', green: '#2E9E57', chalk: 'linear-gradient(135deg,#000 50%,#fff 50%)', color: 'conic-gradient(#6250D6 0 25%, #2A78D6 0 50%, #1BAF7A 0 75%, #EB6834 0)' }[k]}"></button>`).join('')}</div></div>
+    ${rowToggle('Tint the background', 'tint', 'A soft glow of color behind everything')}
   </div>
   <h2 class="sec">Bar and plates</h2>
   <div class="card list">
@@ -1568,7 +1575,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 19</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 20</p>`;
 }
 
 // =====================================================================
@@ -2941,14 +2948,14 @@ function ringsSVG(tot, G, size = 132) {
   RING_KEYS.forEach(([k, , op], i) => {
     const r = size / 2 - sw / 2 - i * (sw + gap); const C = 2 * Math.PI * r; const pct = G[k] ? Math.min(1, (tot[k] || 0) / G[k]) : 0;
     h += `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="${sw}"/>`;
-    if (pct > 0.005) h += `<circle class="ring" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--accent)" stroke-opacity="${op}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - pct)).toFixed(2)}" style="--c:${C.toFixed(2)}" transform="rotate(-90 ${size / 2} ${size / 2})"/>`;
+    if (pct > 0.005) h += `<circle class="ring" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--m-${k})" stroke-opacity="${op}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - pct)).toFixed(2)}" style="--c:${C.toFixed(2)}" transform="rotate(-90 ${size / 2} ${size / 2})"/>`;
   });
   return `<svg class="rings" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${h}</svg>`;
 }
 function foodSummaryCard(tot, G, show) {
   const calG = G.cal; let h = '<div class="card">';
   if (calG) {
-    h += `<div class="ring-wrap">${ringsSVG(tot, G)}<div class="ring-legend">${RING_KEYS.map(([k, l, op]) => `<div class="rl"><i style="opacity:${op}"></i><span>${l}</span><b>${fmtN(tot[k], k)}${G[k] ? `<span class="muted" style="font-weight:400"> / ${fmtN(G[k], k)}</span>` : ''}${k === 'cal' ? '' : ' g'}</b></div>`).join('')}</div></div>
+    h += `<div class="ring-wrap">${ringsSVG(tot, G)}<div class="ring-legend">${RING_KEYS.map(([k, l, op]) => `<div class="rl"><i style="opacity:${op};background:var(--m-${k})"></i><span>${l}</span><b>${fmtN(tot[k], k)}${G[k] ? `<span class="muted" style="font-weight:400"> / ${fmtN(G[k], k)}</span>` : ''}${k === 'cal' ? '' : ' g'}</b></div>`).join('')}</div></div>
     <p class="ring-left"><b>${tot.cal <= calG ? fmtBig(calG - tot.cal) + ' calories left' : fmtBig(tot.cal - calG) + ' calories over'}</b>${G.p ? `<span class="muted"> · ${Math.max(0, Math.round(G.p - tot.p))} g protein to go</span>` : ''}</p>`;
   } else h += `<div class="cal-sum"><div><span class="big">${fmtBig(tot.cal)}</span> <span class="muted">calories</span></div></div>`;
   const rest = show.filter(k => NK[k] && k !== 'cal' && !(calG && ['p', 'c', 'f'].includes(k)));
