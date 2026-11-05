@@ -1591,7 +1591,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 17</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 18</p>`;
 }
 
 // =====================================================================
@@ -2481,7 +2481,65 @@ function sumN(entries) { const t = {}; NUTR.forEach(n => { t[n.k] = 0; }); for (
 function mealGuess() { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 10.5 ? 'b' : h < 15 ? 'l' : h < 21 ? 'd' : 's'; }
 function shiftDay(day, n) { const d = new Date((day || dayKey(Date.now())) + 'T12:00'); d.setDate(d.getDate() + n); return dayKey(d.getTime()); }
 function dayLabel(day) { const t = dayKey(Date.now()); return day === t ? 'Today' : day === shiftDay(t, -1) ? 'Yesterday' : new Date(day + 'T12:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }); }
-function qtyLabel(e) { const q = e.qty || 1; return q === 1 ? (e.serv || '1 serving') : `${fmtNum(q, 2)} × ${e.serv || 'serving'}`; }
+function qtyLabel(e) { const q = e.qty || 1; if (e.serv === '1 g') return `${fmtNum(q, 0)} g`; return q === 1 ? (e.serv || '1 serving') : `${fmtNum(q, 2)} × ${e.serv || 'serving'}`; }
+// ---------- USDA common foods (FoodData Central SR Legacy, public domain) ----------
+// line: name|group|cal|p|c|f|sug|fib|na|satf|chol|portions "label:grams;..."|common name — values per 100 g
+const USDA_K = ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na', 'satf', 'chol'];
+let USDA = null, usdaP = null;
+// nudge the everyday version of a food to the top
+const USDA_PREF = { pepper: /^peppers, sweet, (red|green), raw/, egg: /^egg, whole, (raw, fresh|cooked, (fried|hard-boiled|scrambled))/, rice: /^rice, (white|brown), (long|medium)-grain, (regular, )?(enriched, )?cooked/, chicken: /^chicken, broilers or fryers, (breast|thigh|drumstick|wing), meat only, cooked, (roasted|rotisserie)/, sausage: /^pork sausage, link\/patty, cooked|^sausage, (italian, pork|turkey), cooked/, fries: /^potatoes, french fried/, french: /^potatoes, french fried/, oatmeal: /^cereals, oats, (regular and quick, not fortified, dry|instant, fortified, plain)/, oats: /^cereals, oats, (regular and quick, not fortified, dry|instant, fortified, plain)/, croissant: /^croissants, butter/, apple: /^apples, raw, with skin/, salmon: /^fish, salmon, atlantic, farmed, cooked/, tuna: /^fish, tuna, light, canned in water/, bread: /^bread, (white|whole-wheat), commercially prepared$/, milk: /^milk, (whole|reduced fat|lowfat|nonfat)/, potato: /^potatoes, (baked|boiled), flesh and skin|^potatoes, russet, flesh and skin, baked/, beef: /^beef, ground, (8\d|9\d)% lean meat \/ \d+% fat, (patty|crumbles), cooked/, ground: /^beef, ground, (8\d|9\d)% lean meat \/ \d+% fat, (patty|crumbles), cooked/, bacon: /^pork, cured, bacon, .*cooked/, turkey: /^turkey, ground, cooked|^turkey, (whole|breast), meat only, cooked/, avocado: /^avocados, raw, all commercial/, pasta: /^pasta, cooked, enriched/, spaghetti: /^spaghetti, cooked|^pasta, cooked, enriched/, banana: /^bananas, raw/, onion: /^onions, raw/ };
+const USDA_SYN = { bell: ['sweet', 'bell'], oatmeal: ['oats', 'oatmeal'], fries: ['french', 'fries'], ketchup: ['catsup', 'ketchup'], soda: ['carbonated', 'soda', 'cola'], steak: ['steak', 'beef'], scallion: ['onions', 'scallion'], scallions: ['onions', 'scallion'], garbanzo: ['chickpeas', 'garbanzo'], hotdog: ['frankfurter'], pb: ['peanut'], oj: ['orange'], eggs: ['egg'], potatoes: ['potato'], tomatoes: ['tomato'] };
+const usdaWords = s => s.toLowerCase().replace(/[^a-z0-9%]+/g, ' ').trim().split(' ').filter(Boolean);
+function usdaParse(txt) {
+  return txt.trim().split('\n').map((l, i) => { const a = l.split('|'); return { i, name: a[0], g: a[1], v: a.slice(2, 11), ps: a[11], com: a[12] || '', words: usdaWords(a[0] + ' ' + (a[12] || '')), first: usdaWords(a[0])[0] || '' }; });
+}
+function usdaLoad() {
+  if (USDA) return Promise.resolve(USDA);
+  if (!usdaP) usdaP = (async () => {
+    const el = document.getElementById('usda-data');
+    const txt = el ? el.textContent : await fetch('./foods-usda.txt').then(r => { if (!r.ok) throw new Error('load'); return r.text(); });
+    USDA = usdaParse(txt); return USDA;
+  })().catch(e => { usdaP = null; throw e; });
+  return usdaP;
+}
+const fracFix = s => s.replace(/^1 (cup|tbsp|tsp|oz|slice|piece)s?\b/, '1 $1');
+function usdaPortions(r) {
+  const ps = (r.ps ? r.ps.split(';') : []).map(x => { const j = x.lastIndexOf(':'); return { label: fracFix(x.slice(0, j)), g: parseFloat(x.slice(j + 1)) }; }).filter(p => p.g > 0);
+  if (!ps.some(p => p.g === 100 && /^100 g/.test(p.label))) ps.push({ label: '100 g', g: 100 });
+  if (!ps.some(p => /^1 oz\b/.test(p.label))) ps.push({ label: '1 oz', g: 28.35 });
+  return ps;
+}
+function usdaDefault(ps, name) { const st = usdaWords(name)[0] || 'x'; const stem = st.replace(/(es|s)$/, ''); const one = new RegExp(`^1 (${stem}|fruit|whole)`); const ok = p => !/^1 oz\b|^100 g|bunch|\bhead\b|loaf|\bpie\b|\bcake\b, /.test(p.label); return ps.find(p => /medium/.test(p.label)) || ps.find(p => one.test(p.label)) || ps.find(p => /NLEA/.test(p.label)) || ps.find(ok) || ps[0]; }
+const usdaRound = (k, v) => String(k === 'cal' || k === 'na' || k === 'chol' ? Math.round(v) : Math.round(v * 10) / 10);
+const servLabel = p => /^\d[\d./ ]* ?g$/.test(p.label) ? p.label : `${p.label} (${fmtNum(p.g, 0)} g)`;
+function usdaFood(r) {
+  const per100 = {}; USDA_K.forEach((k, j) => { const x = parseFloat(r.v[j]); if (!isNaN(x)) per100[k] = x; });
+  const portions = usdaPortions(r); const d = usdaDefault(portions, r.name); const o = { id: 'u-' + r.i, name: r.name, serv: servLabel(d), per100, portions, usda: true };
+  for (const k in per100) o[k] = +usdaRound(k, per100[k] * d.g / 100);
+  return o;
+}
+function usdaSearch(q, max = 40) {
+  if (!USDA) return [];
+  const qs = usdaWords(q.replace(/hot ?dogs?/gi, 'frankfurter')); if (!qs.length) return [];
+  const alts = qs.map(w => { const a = new Set([w, ...(USDA_SYN[w] || [])]); if (w.length > 3 && w.endsWith('es')) a.add(w.slice(0, -2)); if (w.length > 3 && w.endsWith('s')) a.add(w.slice(0, -1)); return [...a]; });
+  const out = [];
+  for (const r of USDA) {
+    let ok = true, sc = 0;
+    for (let i = 0; i < alts.length && ok; i++) {
+      let hit = false; for (const a of alts[i]) { if (r.words.some(w => w.startsWith(a))) { hit = true; if (r.words.includes(a) || r.words.includes(a + 's') || r.words.includes(a + 'es')) sc += 2; break; } }
+      if (!hit) ok = false;
+    }
+    if (!ok) continue;
+    if (alts[0].some(a => r.first === a || r.first === a + 's' || r.first === a + 'es')) sc += 10; else if (alts[0].some(a => r.first.startsWith(a))) sc += 5;
+    const ln = r.name.toLowerCase(); if (alts.some(al => al.some(a => USDA_PREF[a] && USDA_PREF[a].test(ln)))) sc += 14;
+    if (/(^|, )raw\b/.test(ln) && /^(09|11)/.test(r.g)) sc += 3;
+    if (/\bcooked\b/.test(ln)) sc += 1;
+    if (r.g === '21' || r.g === '36') sc -= 3;
+    sc -= r.name.split(',').length * 0.8 + r.name.length / 60;
+    out.push([sc, r]);
+  }
+  return out.sort((a, b) => b[0] - a[0]).slice(0, max).map(x => usdaFood(x[1]));
+}
 const mealName = m => (MEALS.find(x => x[0] === m) || MEALS[3])[1];
 
 function foodHomeCard() {
@@ -2527,6 +2585,11 @@ function renderFoodList() {
   const rec = F.recent.map((f, i) => [f, i]).filter(([f]) => m(f)); if (rec.length) h += `<div class="pick-group">Recent</div>` + rec.map(([f, i]) => item('recent', f, String(i))).join('');
   const mine = S.foods.filter(m).sort((a, b) => a.name.localeCompare(b.name)); if (mine.length) h += `<div class="pick-group">My foods</div>` + mine.map(f => item('mine', f, f.id)).join('');
   const bi = FOODS.filter(m); if (bi.length) h += `<div class="pick-group">Common foods</div><p class="muted small" style="padding:0 4px">Typical values.</p>` + bi.map(f => item('builtin', f, f.id)).join('');
+  F.usda = [];
+  if (F.q.trim().length >= 2) {
+    if (!USDA) { usdaLoad().then(() => { if (UI.fadd === F) renderFoodList(); }).catch(() => {}); h += `<div class="pick-group">USDA foods</div><p class="muted small" style="padding:0 4px">Loading…</p>`; }
+    else { F.usda = usdaSearch(F.q); if (F.usda.length) h += `<div class="pick-group">USDA foods</div><p class="muted small" style="padding:0 4px">From the USDA food database. Pick the amount next.</p>` + F.usda.map(f => item('usda', f, f.id)).join(''); }
+  }
   if (!h) h = `<div class="empty-ex">Nothing matches “${esc(F.q)}”.<div style="margin-top:12px"><button class="btn soft" data-act="food-new">${ic('plus')} Enter “${esc(F.q)}” from its label</button></div></div>`;
   el.innerHTML = h;
 }
@@ -2540,17 +2603,26 @@ function openFoodForm({ mode, base = {}, meal, day, isMine = false, fresh = fals
   const d = openDialog(`<div class="dlg-title">${esc(title)}</div>
     ${scanned ? `<p class="small" style="padding:10px 12px;border-radius:10px;background:var(--accent-soft)">${esc(typeof scanned === 'string' ? scanned : 'Read from your photo. Check the numbers against the label, then tap Add.')}</p>` : ''}
     ${base.code ? `<p class="muted small">Barcode ${esc(base.code)}</p>` : ''}
-    ${(!quick && (fresh || lib || entry)) || quick ? `<div class="field"><label class="lbl" for="ff-name">Name${quick ? ' (optional)' : ''}</label><input class="txt" id="ff-name" value="${esc(base.name || '')}" placeholder="${quick ? 'Quick add' : 'For example, Chicken burrito'}" autocomplete="off"></div>` : `<p class="muted small">${esc(base.serv || '')}</p>`}
+    ${(!quick && (fresh || lib || entry)) || quick ? `<div class="field"><label class="lbl" for="ff-name">Name${quick ? ' (optional)' : ''}</label><input class="txt" id="ff-name" value="${esc(base.name || '')}" placeholder="${quick ? 'Quick add' : 'For example, Chicken burrito'}" autocomplete="off"></div>` : base.portions ? '<p class="muted small">USDA food database</p>' : `<p class="muted small">${esc(base.serv || '')}</p>`}
     ${!quick && (fresh || lib || entry) ? `<div class="field"><label class="lbl" for="ff-serv">Serving size</label><input class="txt" id="ff-serv" value="${esc(base.serv || '')}" placeholder="For example, 1 cup (240 ml)" autocomplete="off"></div>` : ''}
+    ${base.portions && !lib && !entry ? `<div class="field"><label class="lbl" for="ff-portion">Amount</label><select class="txt" id="ff-portion">${base.portions.map((p, i) => `<option value="${i}" ${servLabel(p) === base.serv ? 'selected' : ''}>${esc(servLabel(p))}</option>`).join('')}<option value="g">Grams</option></select></div>` : ''}
     ${!lib ? `<div class="grid2"><div class="field"><label class="lbl" for="ff-qty">Servings</label><input class="txt" id="ff-qty" inputmode="decimal" value="${base.qty != null ? fmtNum(base.qty, 2) : 1}" autocomplete="off"></div><div class="field"><label class="lbl" for="ff-meal">Meal</label><select class="txt" id="ff-meal">${MEALS.map(([k, l]) => `<option value="${k}" ${k === meal ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>` : ''}
-    <div class="lbl">${quick ? 'Amounts' : 'Nutrition facts for one serving'}</div>
+    <div class="lbl" id="ff-factlbl">${quick ? 'Amounts' : 'Nutrition facts for one serving'}</div>
     <div class="nut-inputs">${keys.map(k => `<div class="field"><label class="lbl" for="ff-${k}">${NK[k].l} (${NK[k].u})</label><input class="txt" id="ff-${k}" data-nk="${k}" inputmode="decimal" value="${val(k)}" autocomplete="off"></div>`).join('')}</div>
     ${!lib ? `<div class="food-total" id="ff-total"></div>` : ''}
     ${mode === 'add' && !isMine && !inMine ? `<label class="check-row"><input type="checkbox" id="ff-save" ${fresh ? 'checked' : ''}> Save to My foods for next time</label>` : ''}
     ${entry || (lib && !fresh) ? `<button class="btn danger-text" data-x="del">${entry ? 'Remove from this meal' : 'Delete from My foods'}</button>` : ''}
     <div class="foot-row"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn primary" data-x="save">${entry || lib ? 'Save' : 'Add'}</button></div>`);
   const num = id => { const el = $(id, d.el); if (!el) return null; const v = parseFloat(String(el.value).replace(',', '.')); return isNaN(v) ? null : v; };
-  const upd = () => { const t = $('#ff-total', d.el); if (!t) return; const q = num('#ff-qty') || 0; const c = (num('#ff-cal') || 0) * q, p = (num('#ff-p') || 0) * q; t.textContent = `Total: ${fmtBig(c)} cal · ${fmtNum(p, 1)} g protein`; };
+  let gmode = false; const portSel = $('#ff-portion', d.el);
+  if (portSel) portSel.addEventListener('change', () => {
+    const v = portSel.value, was = gmode; gmode = v === 'g'; const pg = gmode ? 100 : base.portions[+v].g;
+    for (const k of keys) { const el = $('#ff-' + k, d.el); if (el) el.value = base.per100[k] != null ? usdaRound(k, base.per100[k] * pg / 100) : ''; }
+    const ql = $('label[for="ff-qty"]', d.el), qi = $('#ff-qty', d.el); ql.textContent = gmode ? 'Grams' : 'Servings';
+    if (gmode) qi.value = '100'; else if (was) qi.value = '1';
+    $('#ff-factlbl', d.el).textContent = gmode ? 'Nutrition facts per 100 g' : 'Nutrition facts for one serving'; upd();
+  });
+  const upd = () => { const t = $('#ff-total', d.el); if (!t) return; const q = (num('#ff-qty') || 0) / (gmode ? 100 : 1); const c = (num('#ff-cal') || 0) * q, p = (num('#ff-p') || 0) * q; t.textContent = `Total: ${fmtBig(c)} cal · ${fmtNum(p, 1)} g protein`; };
   d.el.addEventListener('input', upd); upd();
   setTimeout(() => { const f = $(fresh || quick ? (quick ? '#ff-cal' : '#ff-name') : '#ff-qty', d.el); if (f) { f.focus(); try { f.select(); } catch (e) {} } }, 80);
   d.el.addEventListener('click', ev => {
@@ -2565,7 +2637,9 @@ function openFoodForm({ mode, base = {}, meal, day, isMine = false, fresh = fals
     if (!name && !quick) { toast('Give the food a name'); nameEl && nameEl.focus(); return; }
     const facts = {}; for (const k of keys) facts[k] = num('#ff-' + k);
     if (facts.cal == null) { toast('Enter the calories'); $('#ff-cal', d.el).focus(); return; }
-    const servEl = $('#ff-serv', d.el); const serv = servEl ? servEl.value.trim() : (base.serv || '');
+    const servEl = $('#ff-serv', d.el); let serv = servEl ? servEl.value.trim() : (base.serv || '');
+    if (portSel && !gmode) serv = servLabel(base.portions[+portSel.value]);
+    const per100 = gmode ? { ...facts } : null; if (gmode) { for (const k of keys) if (facts[k] != null) facts[k] = facts[k] / 100; serv = '1 g'; }
     if (lib) {
       const f = { id: base.id || 'f-' + uid(), name, serv, ...(base.code ? { code: base.code } : {}), ...facts };
       const i = S.foods.findIndex(x => x.id === f.id); if (i >= 0) S.foods[i] = f; else S.foods.push(f);
@@ -2582,7 +2656,7 @@ function openFoodForm({ mode, base = {}, meal, day, isMine = false, fresh = fals
     S.meals[day].entries.push({ id: uid(), meal: newMeal, name: name || 'Quick add', serv, qty, ...facts });
     commitDay(day);
     const save = $('#ff-save', d.el);
-    if (save && save.checked) { S.foods.push({ id: 'f-' + uid(), name, serv, ...(base.code ? { code: String(base.code) } : {}), ...facts }); commit('foods'); }
+    if (save && save.checked) { S.foods.push({ id: 'f-' + uid(), name, ...(per100 ? { serv: '100 g', ...per100 } : { serv, ...facts }), ...(base.code ? { code: String(base.code) } : {}) }); commit('foods'); }
     d.close(); closeSheet('foodadd'); UI.foodDay = day;
     if (UI.tab !== 'food') setTab('food'); else renderView();
     toast(`Added to ${mealName(newMeal).toLowerCase()}`);
@@ -2958,9 +3032,9 @@ function openIngredientPicker() {
   renderFoodList();
 }
 async function addIngredient(base) {
-  const q = await promptDialog(`How much ${base.name}?`, `Servings of ${base.serv || '1 serving'}`, '1', 'Add'); if (q == null) return;
-  const qty = parseFloat(String(q).replace(',', '.')); if (!(qty > 0)) { toast('Enter an amount'); return; }
-  const it = { name: base.name, serv: base.serv || '', qty }; NUTR.forEach(n => { if (base[n.k] != null) it[n.k] = base[n.k]; });
+  const q = await promptDialog(`How much ${base.name}?`, base.per100 ? `Servings of ${base.serv}, or grams like 150g` : `Servings of ${base.serv || '1 serving'}`, '1', 'Add'); if (q == null) return;
+  const grams = base.per100 && /g\s*$/i.test(String(q)); const qty = parseFloat(String(q).replace(',', '.')); if (!(qty > 0)) { toast('Enter an amount'); return; }
+  const it = { name: base.name, serv: grams ? '1 g' : base.serv || '', qty }; NUTR.forEach(n => { const v = grams ? (base.per100[n.k] != null ? base.per100[n.k] / 100 : null) : base[n.k]; if (v != null) it[n.k] = v; });
   UI.recipe.items.push(it); closeSheet('foodadd'); renderRecipe();
 }
 function openRecipe(food) {
@@ -3561,7 +3635,7 @@ const ACT = {
   'food-edit': el => { const e = dayEntries(UI.foodDay).find(x => x.id === el.dataset.id); if (e) openFoodForm({ mode: 'entry', base: e, meal: e.meal, day: UI.foodDay }); },
   'food-pick': el => {
     const F = UI.fadd; if (!F) return; const src = el.dataset.src, id = el.dataset.id;
-    const base = src === 'builtin' ? FOODS.find(f => f.id === id) : src === 'mine' ? S.foods.find(f => f.id === id) : F.recent[+id];
+    const base = src === 'builtin' ? FOODS.find(f => f.id === id) : src === 'mine' ? S.foods.find(f => f.id === id) : src === 'usda' ? (F.usda || []).find(f => f.id === id) : F.recent[+id];
     if (base && F.pick) { F.pick(base); return; }
     if (base) openFoodForm({ mode: 'add', base, meal: F.meal, day: F.day, isMine: src === 'mine' });
   },
