@@ -1156,7 +1156,7 @@ function commitWorkout(id) { WV++; if (S.workouts[id]) S.workouts[id].at = Date.
 // Rendering: frame
 // =====================================================================
 const TABS = [['home', 'Progress', 'progress'], ['workout', 'Workout', 'dumbbell'], ['food', 'Food', 'food'], ['weight', 'Weight', 'scale'], ['more', 'Options', 'more']];
-const WSUBS = [['routines', 'Routines'], ['history', 'History'], ['progress', 'Progress']];
+const WSUBS = [['routines', 'Routines'], ['history', 'History'], ['progress', 'Data']];
 function applySettings() {
   const h = document.documentElement, s = S.settings;
   h.dataset.accent = s.accent; h.dataset.size = 'l'; h.dataset.tint = s.tint ? 'on' : 'off';
@@ -1185,7 +1185,7 @@ function renderTop() {
   switch (UI.tab) {
     case 'home': title = 'Progress'; sub = fmtDateLong(Date.now()); break;
     case 'workout': title = 'Workout';
-      sub = UI.wsub === 'history' ? (n ? `${n} workout${n === 1 ? '' : 's'} logged` : 'No workouts yet') : UI.wsub === 'progress' ? 'Trends and records' : (S.routines.length ? `${S.routines.length} routine${S.routines.length === 1 ? '' : 's'} saved` : 'Start one in a tap');
+      sub = UI.wsub === 'history' ? (n ? `${n} workout${n === 1 ? '' : 's'} logged` : 'No workouts yet') : UI.wsub === 'progress' ? 'Sets per muscle' : (S.routines.length ? `${S.routines.length} routine${S.routines.length === 1 ? '' : 's'} saved` : 'Start one in a tap');
       if (UI.wsub === 'routines') right = `<button class="btn soft sm" data-act="routine-new">${ic('plus')} New routine</button>`;
       else if (!S.active) right = `<button class="btn primary sm" data-act="start-empty">${ic('plus')} Start</button>`;
       break;
@@ -1446,8 +1446,8 @@ function viewRoutines() {
   if (S.routines.length) h += S.routines.map(routineCard).join('');
   else h += `<div class="card"><p class="empty">Save your usual workouts and start them in one tap.</p><div style="margin-top:12px"><button class="btn primary" data-act="routine-new">${ic('plus')} Build a routine</button></div></div>`;
   h += scheduleCard();
-  h += `<div class="sec-head"><h2 class="sec">Templates</h2></div><p class="muted small">Save one, then make it yours.</p>`;
-  h += STARTERS.map(starterCard).join('');
+  if (S.settings.hideTemplates) h += `<div style="text-align:center;margin-top:8px"><button class="link" data-act="tpl-toggle">Show templates</button></div>`;
+  else { h += `<div class="sec-head"><h2 class="sec">Templates</h2><button class="link" data-act="tpl-toggle">Hide</button></div><p class="muted small">Save one, then make it yours.</p>`; h += STARTERS.map(starterCard).join(''); }
   return h;
 }
 
@@ -1498,36 +1498,13 @@ function histCard(w) {
 // ---------- Progress ----------
 function viewProgress() {
   const all = workoutsSorted(); const now = Date.now();
-  const ws = startOfWeek(now); const goal = S.settings.weeklyGoal;
-  const wk = all.filter(w => w.start >= now - 7 * DAY);
-  const vol7 = wk.reduce((v, w) => v + workoutVolume(w), 0); const time7 = wk.reduce((t, w) => t + ((w.end || w.start) - w.start), 0);
   let h = demoBanner();
-  h += `<div class="tiles">
-    <div class="tile"><div class="v">${countBetween(ws, addDays(ws, 7))}<small> / ${goal}</small></div><div class="l">Workouts this week</div></div>
-    <div class="tile"><div class="v">${weekStreak()}<small> wk</small></div><div class="l">Weeks in a row on goal</div></div>
-    <div class="tile"><div class="v">${fmtBig(toDispW(vol7))}<small> ${U()}</small></div><div class="l">Volume, last 7 days</div></div>
-    <div class="tile"><div class="v">${time7 ? fmtDur(time7) : '0 min'}</div><div class="l">Training time, last 7 days</div></div></div>`;
-  // weekly bars
-  const weeks = []; for (let i = 11; i >= 0; i--) { const a = addDays(ws, -7 * i); weeks.push({ a, n: countBetween(a, addDays(a, 7)) }); }
-  CHARTS.set('weeks', { kind: 'bar', goal, aria: 'Workouts per week', pts: weeks.map((x, i) => ({ label: fmtShort(x.a), y: x.n, cur: i === 11, tip: `<b>${x.n}</b> workout${x.n === 1 ? '' : 's'}<br>Week of ${fmtShort(x.a)}` })) });
-  h += `<div class="card"><div class="card-head"><h2 class="h3">Workouts per week</h2><span class="muted small">Last 12 weeks · goal ${goal}</span></div><div class="chart" data-chart="weeks"></div></div>`;
-  h += recapsCard() + muscleMapCard() + recordsCard();
-  // muscles
   const since = now - 30 * DAY; const mc = {};
   for (const w of all) { if (w.start < since) break; for (const e of w.exercises) { const m = getEx(e.exId).muscle; mc[m] = (mc[m] || 0) + working(e.sets).length; } }
   const ms = Object.entries(mc).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]); const mx = ms.length ? ms[0][1] : 1;
   h += `<div class="card"><div class="card-head"><h2 class="h3">Working sets by muscle</h2><span class="muted small">Last 30 days</span></div>${ms.length ? `<div class="mbars">${ms.map(([m, n]) => `<span>${esc(m)}</span><div class="track"><div class="fillbar" style="width:${n / mx * 100}%"></div></div><span class="val">${n}</span>`).join('')}</div>` : `<p class="empty">Log a workout to see which muscles you're training most.</p>`}</div>`;
-  // exercises
-  const exStats = new Map();
-  for (const w of all) for (const e of w.exercises) { const d = e.sets.filter(s => s.done); if (!d.length) continue; const st = exStats.get(e.exId) || { n: 0, last: 0 }; st.n++; if (w.start > st.last) st.last = w.start; exStats.set(e.exId, st); }
-  const exList = [...exStats.entries()].sort((a, b) => b[1].last - a[1].last);
-  h += `<div class="card"><div class="card-head"><h2 class="h3">Exercises</h2><span class="muted small">Tap for charts</span></div>`;
-  if (exList.length) {
-    h += (UI.progAll ? exList : exList.slice(0, 8)).map(([id, st]) => { const ex = getEx(id); return `<button class="exrow" data-act="ex-detail" data-exid="${id}"><div><div style="font-weight:600">${esc(ex.name)}</div><div class="muted small">${esc(ex.muscle)} · ${st.n} session${st.n === 1 ? '' : 's'}</div></div><div class="r muted small">Last ${fmtShort(st.last)} ${ic('right')}</div></button>`; }).join('');
-    if (exList.length > 8 && !UI.progAll) h += `<button class="link" data-act="prog-all">Show all ${exList.length}</button>`;
-  } else h += `<p class="empty">Exercises you log will be listed here.</p>`;
-  h += `</div>`;
-  if (!all.length) h += `<div class="card"><p class="empty">Charts fill in as you log.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
+  h += muscleMapCard();
+  if (!all.length) h += `<div class="card"><p class="empty">This fills in as you log.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
   return h;
 }
 
@@ -1591,7 +1568,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 18</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 19</p>`;
 }
 
 // =====================================================================
@@ -3652,6 +3629,7 @@ const ACT = {
   'import': () => $('#import-file').click(),
   'demo-load': () => loadDemo(),
   'demo-clear': () => clearDemo(),
+  'tpl-toggle': () => { const hide = !S.settings.hideTemplates; S.settings.hideTemplates = hide; commit('settings'); renderView(); if (hide) undoToast('Templates hidden', () => { S.settings.hideTemplates = false; commit('settings'); renderView(); }); },
   'goal-menu': el => goalMenu(el.dataset.gid),
   'goal-add': () => addGoal(),
   'erase': () => eraseAll(),
