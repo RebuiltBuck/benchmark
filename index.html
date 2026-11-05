@@ -374,15 +374,12 @@ button.row { width: 100%; text-align: left; }
 .nut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; margin: 16px 0 8px; }
 .nut-top { display: flex; justify-content: space-between; gap: 4px 8px; font-size: .9375rem; flex-wrap: wrap; }
 .goalbar.thin { height: 5px; margin-top: 6px; }
-.goals .goal-item { display: block; width: 100%; text-align: left; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.goals .goal-item:last-of-type { border-bottom: 0; margin-bottom: 8px; }
-.goals .goal-item .muted.small { margin-top: 6px; }
-.gi-top { display: flex; align-items: baseline; gap: 10px; }
-.gi-title { font-weight: 700; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.gi-val { font-weight: 700; white-space: nowrap; }
-.gi-check { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; flex: none; align-self: center; }
-.gi-check svg { width: 14px; height: 14px; }
-.goal-item.empty .muted.small { margin-top: 2px; }
+.goals .goal-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.goals .goal-item:last-child { border-bottom: 0; }
+.gi-ring { flex: none; }
+.gi-ring text { font-size: 10.5px; font-weight: 700; fill: var(--ink); }
+.gi-main { flex: 1; min-width: 0; }
+.gi-title { font-weight: 700; overflow-wrap: anywhere; }
 .food-home { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .nut-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 700; }
@@ -1159,7 +1156,7 @@ function commitWorkout(id) { WV++; if (S.workouts[id]) S.workouts[id].at = Date.
 // Rendering: frame
 // =====================================================================
 const TABS = [['home', 'Progress', 'progress'], ['workout', 'Workout', 'dumbbell'], ['food', 'Food', 'food'], ['weight', 'Weight', 'scale'], ['more', 'Options', 'more']];
-const WSUBS = [['routines', 'Routines'], ['history', 'History']];
+const WSUBS = [['routines', 'Routines'], ['history', 'History'], ['progress', 'Progress']];
 function applySettings() {
   const h = document.documentElement, s = S.settings;
   h.dataset.accent = s.accent; h.dataset.size = 'l'; h.dataset.tint = s.tint ? 'on' : 'off';
@@ -1188,7 +1185,7 @@ function renderTop() {
   switch (UI.tab) {
     case 'home': title = 'Progress'; sub = fmtDateLong(Date.now()); break;
     case 'workout': title = 'Workout';
-      sub = UI.wsub === 'history' ? (n ? `${n} workout${n === 1 ? '' : 's'} logged` : 'No workouts yet') : (S.routines.length ? `${S.routines.length} routine${S.routines.length === 1 ? '' : 's'} saved` : 'Start one in a tap');
+      sub = UI.wsub === 'history' ? (n ? `${n} workout${n === 1 ? '' : 's'} logged` : 'No workouts yet') : UI.wsub === 'progress' ? 'Trends and records' : (S.routines.length ? `${S.routines.length} routine${S.routines.length === 1 ? '' : 's'} saved` : 'Start one in a tap');
       if (UI.wsub === 'routines') right = `<button class="btn soft sm" data-act="routine-new">${ic('plus')} New routine</button>`;
       else if (!S.active) right = `<button class="btn primary sm" data-act="start-empty">${ic('plus')} Start</button>`;
       break;
@@ -1213,7 +1210,6 @@ function renderMinibar() {
   el.innerHTML = `<button class="minibar" data-act="resume" aria-label="Open workout in progress">${ic('dumbbell')}<span class="mb-name">${esc(S.active.name)}</span>${r ? `<span class="mb-rest">Rest <span class="num" data-rest-left></span></span>` : ''}<span class="num" data-elapsed></span>${ic('right')}</button>`;
 }
 function setTab(t) {
-  if (t === 'progress') t = 'home';
   if (WSUBS.some(x => x[0] === t)) { UI.wsub = t; t = 'workout'; }
   if (!TABS.some(x => x[0] === t)) t = 'home';
   UI.tab = t; try { sessionStorage.setItem('ironlog.tab', t); } catch (e) {} renderTop(); renderView(); renderTabs(); const v = $('#view'); v.style.scrollBehavior = 'auto'; v.scrollTop = 0; v.style.scrollBehavior = ''; animateIn(v); }
@@ -1231,9 +1227,10 @@ function installHint() {
   return `<div class="banner"><span>${ios ? 'Install Benchmark: tap the Share button, then <b>Add to Home Screen</b>.' : 'Install Benchmark from your browser menu with <b>Add to Home screen</b> or <b>Install app</b>.'}</span><button class="btn soft sm" data-act="hint-hide">Got it</button></div>`;
 }
 // ---------- Progress tab: goals ----------
-const GOAL_DEFAULTS = [{ id: 'weekly', type: 'weekly' }, { id: 'weight', type: 'weight' }, { id: 'cal', type: 'cal' }, { id: 'p', type: 'p' }];
+const GOAL_DEFAULTS = [];
+const GOAL_PERSONAL = new Set(['lift', 'meas', 'streak', 'custom']);
 const GOAL_SINGLE = ['weekly', 'weight', 'cal', 'p', 'streak'];
-const pgoals = () => Array.isArray(S.settings.pgoals) ? S.settings.pgoals : GOAL_DEFAULTS.map(g => ({ ...g }));
+const pgoals = () => (Array.isArray(S.settings.pgoals) ? S.settings.pgoals : GOAL_DEFAULTS).filter(g => GOAL_PERSONAL.has(g.type));
 function savePGoals(list) { S.settings.pgoals = list; commit('settings'); }
 const WEIGHT_TYPES = new Set(Object.keys(PR_BY_TYPE).filter(t => PR_BY_TYPE[t].includes('w')));
 function liftBest(exId) {
@@ -1285,7 +1282,7 @@ function goalInfo(g) {
     }
     case 'lift': {
       const ex = getEx(g.exId); const best = liftBest(g.exId);
-      return { title: ex.name, value: `${best != null ? fmtW(best) : '0'} → ${fmtWU(g.target)}`, pct: best ? best / g.target : 0, done: best != null && best >= g.target - 1e-6, sub: best == null ? 'Log this lift to track it' : best >= g.target - 1e-6 ? 'Goal reached' : `Best ${fmtWU(best)} · ${fmtWU(g.target - best)} to go` };
+      return { title: ex.name, value: `${best != null ? fmtW(best) : '0'} → ${fmtWU(g.target)}`, pct: best ? best / g.target : 0, done: best != null && best >= g.target - 1e-6, sub: best == null ? 'Log this lift to track it' : best >= g.target - 1e-6 ? 'Goal reached' : `${fmtWU(g.target - best)} to go` };
     }
     case 'meas': {
       const l = (MEAS.find(m => m[0] === g.k) || [, 'Measurement'])[1]; const { first, latest } = measFirstLatest(g.k); const u = mUnit(g.k); const f = v => fmtNum(toDispM(g.k, v), 1);
@@ -1301,18 +1298,24 @@ function goalInfo(g) {
   }
   return null;
 }
+function goalRing(pct) {
+  const r = 17, C = 2 * Math.PI * r, p = clamp(pct || 0, 0, 1);
+  return `<svg class="gi-ring" width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="5"/>${p > 0.005 ? `<circle cx="22" cy="22" r="${r}" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - p)).toFixed(2)}" transform="rotate(-90 22 22)"/>` : ''}<text x="22" y="26.5" text-anchor="middle">${p >= 1 ? '✓' : Math.round(p * 100) + '%'}</text></svg>`;
+}
 function goalsCard() {
-  const list = pgoals(); const rows = list.map(g => { const i = goalInfo(g); if (!i) return ''; const pct = clamp((i.pct || 0) * 100, 0, 100);
-    return `<button class="goal-item ${i.done ? 'done' : ''} ${i.empty ? 'empty' : ''}" data-act="goal-menu" data-gid="${esc(g.id)}"><div class="gi-top"><span class="gi-title">${esc(i.title)}</span>${i.value ? `<span class="gi-val num">${esc(i.value)}</span>` : ''}${i.done ? `<span class="gi-check">${ic('check')}</span>` : ''}</div>${i.empty ? '' : `<div class="goalbar thin" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><i style="width:${pct}%"></i></div>`}<div class="muted small">${esc(i.sub || '')}</div></button>`; }).join('');
-  return `<div class="card goals"><div class="card-head"><h2 class="h3">Your goals</h2><span class="muted small">Tap one to change it</span></div>${rows || '<p class="empty">Add a goal to keep it in front of you every day.</p>'}<button class="btn soft block" data-act="goal-add">${ic('plus')} Add goal</button></div>`;
+  const list = pgoals();
+  const rows = list.map(g => { const i = goalInfo(g); if (!i) return '';
+    return `<button class="goal-item ${i.done ? 'done' : ''}" data-act="goal-menu" data-gid="${esc(g.id)}">${goalRing(i.pct)}<div class="gi-main"><div class="gi-title">${esc(i.title)}</div><div class="muted small">${esc(i.value || '')}${i.value && i.sub ? ' · ' : ''}${esc(i.sub || '')}</div></div></button>`; }).join('');
+  return `<div class="card goals"><div class="card-head"><h2 class="h3">My goals</h2>${list.length ? '<button class="link" data-act="goal-add">Add goal</button>' : ''}</div>${rows || `<p class="muted">Add a lift, a measurement or anything you're working toward.</p><div style="margin-top:12px"><button class="btn soft" data-act="goal-add">${ic('plus')} Add goal</button></div>`}</div>`;
 }
 function viewHome() {
   let h = installHint() + demoBanner();
   if (S.active) h += `<button class="card resume" data-act="resume"><div><div class="eyebrow">Workout in progress</div><div class="h3">${esc(S.active.name)}</div><div class="muted small"><span class="num" data-elapsed></span> · ${doneCount(S.active)} sets done</div></div><span class="btn primary sm">Open</span></button>`;
   h += recapHomeCard();
+  h += weekCard();
+  h += foodHomeCard();
+  h += weightHomeCard();
   h += goalsCard();
-  h += `<div class="sec-head"><h2 class="sec">Training</h2></div>`;
-  h += viewProgress();
   return h;
 }
 async function goalMenu(id) {
@@ -1337,7 +1340,7 @@ async function goalMenu(id) {
 }
 async function addGoal() {
   const have = new Set(pgoals().map(g => g.type));
-  const all = [['weekly', 'Workouts per week', 'How often you train'], ['weight', 'Goal weight', 'With an estimated date'], ['lift', 'Lift goal', 'Like Bench Press 225'], ['cal', 'Daily calories', 'Shows what is left today'], ['p', 'Daily protein', 'Grams to hit each day'], ['meas', 'Measurement', 'Like a 32 inch waist'], ['streak', 'Week streak', 'Weeks in a row on goal'], ['custom', 'Your own goal', 'Anything else, like run a 5K']];
+  const all = [['lift', 'Lift goal', 'Like Bench Press 225'], ['meas', 'Measurement', 'Like a 32 inch waist'], ['streak', 'Week streak', 'Weeks in a row on your weekly goal'], ['custom', 'Your own goal', 'Anything else, like run a 5K']];
   const v = await actionSheet('Add a goal', all.filter(([k]) => !GOAL_SINGLE.includes(k) || !have.has(k)).map(([k, l, sub]) => ({ v: k, label: l, sub })));
   if (!v) return;
   editGoal({ id: GOAL_SINGLE.includes(v) ? v : 'g-' + uid(), type: v }, true);
@@ -1498,10 +1501,10 @@ function viewProgress() {
   const ws = startOfWeek(now); const goal = S.settings.weeklyGoal;
   const wk = all.filter(w => w.start >= now - 7 * DAY);
   const vol7 = wk.reduce((v, w) => v + workoutVolume(w), 0); const time7 = wk.reduce((t, w) => t + ((w.end || w.start) - w.start), 0);
-  let h = ''; const m0 = new Date(new Date(now).getFullYear(), new Date(now).getMonth(), 1).getTime(); const ms0 = periodStats(m0, now + 1);
+  let h = demoBanner();
   h += `<div class="tiles">
-    <div class="tile"><div class="v">${ms0.n}</div><div class="l">Workouts this month</div></div>
-    <div class="tile"><div class="v">${ms0.prs}</div><div class="l">Records this month</div></div>
+    <div class="tile"><div class="v">${countBetween(ws, addDays(ws, 7))}<small> / ${goal}</small></div><div class="l">Workouts this week</div></div>
+    <div class="tile"><div class="v">${weekStreak()}<small> wk</small></div><div class="l">Weeks in a row on goal</div></div>
     <div class="tile"><div class="v">${fmtBig(toDispW(vol7))}<small> ${U()}</small></div><div class="l">Volume, last 7 days</div></div>
     <div class="tile"><div class="v">${time7 ? fmtDur(time7) : '0 min'}</div><div class="l">Training time, last 7 days</div></div></div>`;
   // weekly bars
@@ -1588,7 +1591,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 16</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 17</p>`;
 }
 
 // =====================================================================
@@ -2288,7 +2291,7 @@ function viewWorkout() {
   const sub = WSUBS.some(x => x[0] === UI.wsub) ? UI.wsub : 'routines';
   let h = `<div class="seg wide" role="tablist">${WSUBS.map(([k, l]) => `<button role="tab" data-act="wsub" data-sub="${k}" aria-pressed="${k === sub}" aria-selected="${k === sub}">${l}</button>`).join('')}</div>`;
   if (S.active) h += `<button class="card resume" data-act="resume"><div><div class="eyebrow">Workout in progress</div><div class="h3">${esc(S.active.name)}</div><div class="muted small"><span class="num" data-elapsed></span> · ${doneCount(S.active)} sets done</div></div><span class="btn primary">Resume</span></button>`;
-  return h + (sub === 'history' ? viewHistory() : viewRoutines());
+  return h + (sub === 'history' ? viewHistory() : sub === 'progress' ? viewProgress() : viewRoutines());
 }
 const ACTIVITY = [['sed', 1.2, 'Mostly sitting', 'Desk job and little exercise'], ['light', 1.375, 'Lightly active', 'Exercise 1 to 3 days a week'], ['mod', 1.55, 'Moderately active', 'Exercise 3 to 5 days a week'], ['very', 1.725, 'Very active', 'Hard exercise 6 or 7 days a week'], ['xtra', 1.9, 'Extremely active', 'Physical job plus daily training']];
 const paceOpts = () => U() === 'lb' ? [0.5, 1, 1.5, 2].map(v => [v * KG_PER_LB, `${v} lb a week`]) : [0.25, 0.5, 0.75, 1].map(v => [v, `${v} kg a week`]);
