@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-accent="color" data-tint="on" data-size="l">
+<html lang="en" data-accent="chalk" data-tint="off" data-size="l">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -69,12 +69,25 @@ html[data-accent="blue"]   { --acc-l: #1E5BD0; --acc-d: #5D9BFF; --acc-ink-l: #F
 html[data-accent="red"]    { --acc-l: #C8101A; --acc-d: #E3141E; --acc-ink-l: #FFFFFF; --acc-ink-d: #FFFFFF; }
 html[data-accent="yellow"] { --acc-l: #8A6500; --acc-d: #F2C230; --acc-ink-l: #FFFFFF; --acc-ink-d: #221A00; }
 html[data-accent="green"]  { --acc-l: #157444; --acc-d: #45CF86; --acc-ink-l: #FFFFFF; --acc-ink-d: #06200F; }
-html[data-accent="color"]  { --acc-l: #6250D6; --acc-d: #9085E9; --acc-ink-l: #FFFFFF; --acc-ink-d: #120C33; }
 /* macro colors: one hue per nutrient so the rings read at a glance (validated for color-blind separation in ring order) */
 html { --m-cal: light-dark(#2A78D6, #3987E5); --m-p: light-dark(#EB6834, #D95926); --m-c: light-dark(#1BAF7A, #199E70); --m-f: light-dark(#EDA100, #C98500); }
-html[data-accent="chalk"] { --m-cal: var(--accent); --m-p: var(--accent); --m-c: var(--accent); --m-f: var(--accent); }
-html:not([data-accent="chalk"]) .rings .ring { stroke-opacity: 1; }
-html:not([data-accent="chalk"]) .rl i { opacity: 1 !important; }
+html:root .rings .ring { stroke-opacity: 1; }
+html:root .rl i { opacity: 1 !important; }
+/* black and white: simple color by section (workout blue, food orange, weight green, goals violet) */
+html[data-accent="chalk"] { --c-work: light-dark(#2A78D6, #3987E5); --c-food: light-dark(#EB6834, #D95926); --c-weight: light-dark(#1BAF7A, #199E70); --c-goal: light-dark(#6250D6, #9085E9); --c-water: light-dark(#2A78D6, #3987E5); }
+html[data-accent="chalk"] :is(#view[data-tab="workout"], .dc-work) { --accent: var(--c-work); }
+html[data-accent="chalk"] :is(#view[data-tab="food"], .dc-food) { --accent: var(--c-food); }
+html[data-accent="chalk"] :is(#view[data-tab="weight"], .dc-weight) { --accent: var(--c-weight); }
+html[data-accent="chalk"] .dc-goal { --accent: var(--c-goal); }
+html[data-accent="chalk"] .dc-water { --accent: var(--c-water); }
+html[data-accent="chalk"] :is(#view[data-tab="workout"], #view[data-tab="food"], #view[data-tab="weight"], .dc-work, .dc-food, .dc-weight, .dc-goal, .dc-water) {
+  --accent-ink: #FFFFFF; --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-grad: linear-gradient(135deg, color-mix(in srgb, var(--accent) 72%, #fff) 0%, var(--accent) 48%, color-mix(in srgb, var(--accent) 70%, #000) 100%);
+  --glow: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+html[data-accent="chalk"] .tab[aria-current="page"][data-tab="workout"] { color: var(--c-work); }
+html[data-accent="chalk"] .tab[aria-current="page"][data-tab="food"] { color: var(--c-food); }
+html[data-accent="chalk"] .tab[aria-current="page"][data-tab="weight"] { color: var(--c-weight); }
 html[data-accent="chalk"]  { --acc-l: #111111; --acc-d: #F2F2F2; --acc-ink-l: #FFFFFF; --acc-ink-d: #000000; }
 html[data-size="l"] { font-size: 18px; }
 
@@ -427,7 +440,6 @@ html:root.force-light { --bg: #F3F3F3; --surface: #FFFFFF; --surface-2: rgb(20 0
   --shadow: 0 10px 30px -12px rgb(60 0 0 / .18), 0 1px 2px rgb(0 0 0 / .05); }
 
 html:root[data-tint="on"] { --amb1: color-mix(in srgb, var(--accent) 40%, transparent); --amb2: color-mix(in srgb, var(--accent) 30%, transparent); --amb3: color-mix(in srgb, var(--accent) 16%, transparent); }
-html:root[data-tint="on"][data-accent="color"] { --amb1: color-mix(in srgb, var(--accent) 38%, transparent); --amb2: color-mix(in srgb, var(--m-cal) 28%, transparent); --amb3: color-mix(in srgb, var(--m-c) 20%, transparent); }
 body::before { content: ""; position: fixed; inset: -25%; z-index: -1; background: var(--ambient); filter: blur(30px); animation: drift 26s ease-in-out infinite alternate; pointer-events: none; }
 @keyframes drift { 0% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(4%, 3%, 0) scale(1.08); } 100% { transform: translate3d(-3%, 5%, 0) scale(1.03); } }
 html { background: var(--bar); }
@@ -835,14 +847,14 @@ function starterToRoutine(st) {
 const DEFAULT_SETTINGS = {
   unit: 'lb', distUnit: 'mi', rest: 90, restAuto: true, restSound: true, restVibrate: true,
   showRPE: false, showPrev: true, defaultSets: 3, weeklyGoal: 3, e1rm: 'epley', weekStart: 1,
-  theme: 'system', accent: 'color', tint: true, size: 'm', barLb: 45, barKg: 20,
+  theme: 'system', accent: 'chalk', tint: false, size: 'm', barLb: 45, barKg: 20,
   platesLb: [45, 35, 25, 10, 5, 2.5], platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
-  nutriShow: ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na'], nutriGoals: {}, themeV: 4, schedule: {}, progression: true, waterGoal: 8, onboarded: false, goal: '',
+  nutriShow: ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na'], nutriGoals: {}, themeV: 5, schedule: {}, progression: true, waterGoal: 8, onboarded: false, goal: '',
 };
 const DOC_KEYS = ['settings', 'library', 'routines', 'body', 'active', 'foods', 'smeals', 'meas'];
 const EMPTY = { settings: {}, library: [], routines: [], body: [], active: null, foods: [], smeals: [], meas: [] };
 // Older saves predate the black, white and red theme: move them onto it once.
-function migrateSettings(raw) { if (raw && raw.themeV !== 4) { if (raw.themeV !== 3 || S.settings.accent === 'chalk') { S.settings.accent = 'color'; S.settings.tint = true; } S.settings.themeV = 4; S.settingsAt = Date.now(); } }
+function migrateSettings(raw) { if (raw && raw.themeV !== 5) { if ((raw.themeV !== 3 && raw.themeV !== 4) || S.settings.accent === 'color') { S.settings.accent = 'chalk'; S.settings.tint = false; } S.settings.themeV = 5; S.settingsAt = Date.now(); } }
 const S = {
   settings: { ...DEFAULT_SETTINGS }, settingsAt: 0,
   library: [], libraryAt: 0,
@@ -1205,7 +1217,7 @@ function renderTop() {
 function renderView() {
   const v = $('#view');
   const html = { home: viewHome, workout: viewWorkout, food: viewFood, weight: viewWeight, more: viewMore }[UI.tab]();
-  v.innerHTML = `<div class="inner">${html}</div>`;
+  v.dataset.tab = UI.tab; v.innerHTML = `<div class="inner">${html}</div>`;
   drawCharts(v);
   tick();
 }
@@ -1313,7 +1325,7 @@ function goalsCard() {
   const list = pgoals();
   const rows = list.map(g => { const i = goalInfo(g); if (!i) return '';
     return `<button class="goal-item ${i.done ? 'done' : ''}" data-act="goal-menu" data-gid="${esc(g.id)}">${goalRing(i.pct)}<div class="gi-main"><div class="gi-title">${esc(i.title)}</div><div class="muted small">${esc(i.value || '')}${i.value && i.sub ? ' · ' : ''}${esc(i.sub || '')}</div></div></button>`; }).join('');
-  return `<div class="card goals"><div class="card-head"><h2 class="h3">My goals</h2>${list.length ? '<button class="link" data-act="goal-add">Add goal</button>' : ''}</div>${rows || `<p class="muted">Add a lift, a measurement or anything you're working toward.</p><div style="margin-top:12px"><button class="btn soft" data-act="goal-add">${ic('plus')} Add goal</button></div>`}</div>`;
+  return `<div class="card goals dc-goal"><div class="card-head"><h2 class="h3">My goals</h2>${list.length ? '<button class="link" data-act="goal-add">Add goal</button>' : ''}</div>${rows || `<p class="muted">Add a lift, a measurement or anything you're working toward.</p><div style="margin-top:12px"><button class="btn soft" data-act="goal-add">${ic('plus')} Add goal</button></div>`}</div>`;
 }
 function viewHome() {
   let h = installHint() + demoBanner();
@@ -1425,7 +1437,7 @@ function weekCard() {
   const days = Array.from({ length: 7 }, (_, i) => addDays(ws, i));
   const trained = new Set(workoutsSorted().filter(w => w.start >= ws).map(w => dayKey(w.start)));
   const n = countBetween(ws, addDays(ws, 7)); const st = weekStreak(); const today = dayKey(Date.now());
-  return `<div class="card week"><div class="week-top"><div><span class="big">${n}</span> <span class="muted">of ${goal} workouts this week</span></div><span class="chip ${st ? 'good' : ''}">${st} week streak</span></div>
+  return `<div class="card week dc-work"><div class="week-top"><div><span class="big">${n}</span> <span class="muted">of ${goal} workouts this week</span></div><span class="chip ${st ? 'good' : ''}">${st} week streak</span></div>
   <div class="goalbar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${n}"><i style="width:${clamp(n / goal * 100, 0, 100)}%"></i></div>
   <div class="week-days">${days.map(d => { const k = dayKey(d); return `<div class="wd ${trained.has(k) ? 'on' : ''} ${k === today ? 'today' : ''}"><span>${new Date(d).toLocaleDateString(undefined, { weekday: 'narrow' })}</span><b>${new Date(d).getDate()}</b></div>`; }).join('')}</div></div>`;
 }
@@ -1509,7 +1521,7 @@ function viewProgress() {
   const since = now - 30 * DAY; const mc = {};
   for (const w of all) { if (w.start < since) break; for (const e of w.exercises) { const m = getEx(e.exId).muscle; mc[m] = (mc[m] || 0) + working(e.sets).length; } }
   const ms = Object.entries(mc).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]); const mx = ms.length ? ms[0][1] : 1;
-  h += `<div class="card"><div class="card-head"><h2 class="h3">Working sets by muscle</h2><span class="muted small">Last 30 days</span></div>${ms.length ? `<div class="mbars">${ms.map(([m, n]) => `<span>${esc(m)}</span><div class="track"><div class="fillbar" style="width:${n / mx * 100}%"></div></div><span class="val">${n}</span>`).join('')}</div>` : `<p class="empty">Log a workout to see which muscles you're training most.</p>`}</div>`;
+  h += `<div class="card dc-work"><div class="card-head"><h2 class="h3">Working sets by muscle</h2><span class="muted small">Last 30 days</span></div>${ms.length ? `<div class="mbars">${ms.map(([m, n]) => `<span>${esc(m)}</span><div class="track"><div class="fillbar" style="width:${n / mx * 100}%"></div></div><span class="val">${n}</span>`).join('')}</div>` : `<p class="empty">Log a workout to see which muscles you're training most.</p>`}</div>`;
   h += muscleMapCard();
   if (!all.length) h += `<div class="card"><p class="empty">This fills in as you log.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
   return h;
@@ -1521,7 +1533,7 @@ function rowSeg(label, key, opts, sub = '') { return `<div class="row"><div clas
 function rowToggle(label, key, sub = '') { return `<div class="row"><div class="row-l" id="lbl-${key}">${label}${sub ? `<div class="small muted">${sub}</div>` : ''}</div><button class="switch" role="switch" aria-checked="${!!S.settings[key]}" aria-labelledby="lbl-${key}" data-act="toggle" data-key="${key}"></button></div>`; }
 function rowSelect(label, key, opts, sub = '') { const cur = String(S.settings[key]); return `<div class="row"><label class="row-l" for="set-${key}">${label}${sub ? `<div class="small muted">${sub}</div>` : ''}</label><select class="txt" id="set-${key}" data-setting="${key}">${opts.map(([v, l]) => `<option value="${v}" ${String(v) === cur ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`; }
 const REST_OPTS = [0, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300];
-const ACCENTS = [['color', 'Color'], ['chalk', 'Black and white'], ['red', 'Red'], ['blue', 'Blue'], ['yellow', 'Yellow'], ['green', 'Green']];
+const ACCENTS = [['chalk', 'Black and white'], ['red', 'Red'], ['blue', 'Blue'], ['yellow', 'Yellow'], ['green', 'Green']];
 function viewMore() {
   const s = S.settings; const lb = s.unit === 'lb';
   const plateSet = lb ? [55, 45, 35, 25, 15, 10, 5, 2.5, 1.25] : [25, 20, 15, 10, 5, 2.5, 2, 1.25, 1, 0.5];
@@ -1550,8 +1562,8 @@ function viewMore() {
   <h2 class="sec">Look</h2>
   <div class="card list">
     ${rowSeg('Theme', 'theme', [['system', 'Auto'], ['dark', 'Dark'], ['light', 'Light']])}
-    <div class="row"><div class="row-l">Accent color</div><div class="swatches">${ACCENTS.map(([k, l]) => `<button class="sw" data-act="set" data-key="accent" data-val="${k}" aria-pressed="${s.accent === k}" aria-label="${l}" title="${l}" style="background:${{ blue: '#2563C9', red: '#C8101A', yellow: '#E8B511', green: '#2E9E57', chalk: 'linear-gradient(135deg,#000 50%,#fff 50%)', color: 'conic-gradient(#6250D6 0 25%, #2A78D6 0 50%, #1BAF7A 0 75%, #EB6834 0)' }[k]}"></button>`).join('')}</div></div>
-    ${rowToggle('Tint the background', 'tint', 'A soft glow of color behind everything')}
+    <div class="row"><div class="row-l">Accent color</div><div class="swatches">${ACCENTS.map(([k, l]) => `<button class="sw" data-act="set" data-key="accent" data-val="${k}" aria-pressed="${s.accent === k}" aria-label="${l}" title="${l}" style="background:${{ blue: '#2563C9', red: '#C8101A', yellow: '#E8B511', green: '#2E9E57', chalk: 'linear-gradient(135deg,#000 50%,#fff 50%)' }[k]}"></button>`).join('')}</div></div>
+    ${rowToggle('Tint the background', 'tint', 'Uses your accent color')}
   </div>
   <h2 class="sec">Bar and plates</h2>
   <div class="card list">
@@ -1575,7 +1587,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 20</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 21</p>`;
 }
 
 // =====================================================================
@@ -2308,7 +2320,7 @@ function planCalc() {
 function weightHomeCard() {
   const cur = latestBody(); const P = S.settings.profile || {};
   const line = cur ? `${fmtWU(cur.kg)}${P.goalKg && Math.abs(P.goalKg - cur.kg) >= 0.2 ? ` · ${fmtWU(Math.abs(P.goalKg - cur.kg))} to goal` : ''}` : 'Not logged yet';
-  return `<div class="card food-home"><div><div class="h3">Weight</div><div class="muted">${line}</div></div><button class="btn soft sm" data-act="body-log">${ic('plus')} Log weight</button></div>`;
+  return `<div class="card food-home dc-weight"><div><div class="h3">Weight</div><div class="muted">${line}</div></div><button class="btn soft sm" data-act="body-log">${ic('plus')} Log weight</button></div>`;
 }
 function viewWeight() {
   const body = bodySorted(), cur = body[body.length - 1], P = S.settings.profile || {}; const now = Date.now();
@@ -2528,7 +2540,7 @@ const mealName = m => (MEALS.find(x => x[0] === m) || MEALS[3])[1];
 
 function foodHomeCard() {
   const t = sumN(dayEntries(dayKey(Date.now()))); const G = S.settings.nutriGoals || {};
-  return `<div class="card food-home"><div class="fh-left">${G.cal ? ringsSVG(t, G, 58) : ''}<div><div class="h3">Food today</div><div class="muted">${fmtBig(t.cal)}${G.cal ? ` of ${fmtBig(G.cal)}` : ''} cal · ${fmtNum(t.p, 0)} g protein</div></div></div><button class="btn soft sm" data-act="food-add-now">${ic('plus')} Log food</button></div>`;
+  return `<div class="card food-home dc-food"><div class="fh-left">${G.cal ? ringsSVG(t, G, 58) : ''}<div><div class="h3">Food today</div><div class="muted">${fmtBig(t.cal)}${G.cal ? ` of ${fmtBig(G.cal)}` : ''} cal · ${fmtNum(t.p, 0)} g protein</div></div></div><button class="btn soft sm" data-act="food-add-now">${ic('plus')} Log food</button></div>`;
 }
 function viewFood() {
   if (!UI.foodDay) UI.foodDay = dayKey(Date.now());
@@ -2916,7 +2928,7 @@ function muscleMapCard() {
   const front = head(60) + E('Shoulders', 39, 40, 9, 8) + E('Shoulders', 81, 40, 9, 8) + R('Chest', 44, 33, 32, 22, 8) + R('Biceps', 27, 49, 10, 23, 5) + R('Biceps', 83, 49, 10, 23, 5) + R('Forearms', 23, 75, 10, 25, 5) + R('Forearms', 87, 75, 10, 25, 5) + R('Core', 47, 57, 26, 34, 7) + N(44, 92, 32, 9, 4) + R('Quads', 44, 103, 14, 42, 7) + R('Quads', 62, 103, 14, 42, 7) + R('Calves', 45, 149, 12, 32, 6) + R('Calves', 63, 149, 12, 32, 6);
   const back = head(170) + E('Shoulders', 149, 40, 9, 8) + E('Shoulders', 191, 40, 9, 8) + R('Back', 154, 33, 32, 26, 8) + R('Back', 157, 60, 26, 24, 7) + R('Triceps', 137, 49, 10, 23, 5) + R('Triceps', 193, 49, 10, 23, 5) + R('Forearms', 133, 75, 10, 25, 5) + R('Forearms', 197, 75, 10, 25, 5) + R('Glutes', 154, 86, 32, 17, 8) + R('Hamstrings', 154, 105, 14, 40, 7) + R('Hamstrings', 172, 105, 14, 40, 7) + R('Calves', 155, 149, 12, 32, 6) + R('Calves', 173, 149, 12, 32, 6);
   const trained = MAP_MUSCLES.filter(m => mc[m]).sort((a, b) => mc[b] - mc[a]); const missed = MAP_MUSCLES.filter(m => !mc[m]);
-  return `<div class="card"><div class="card-head"><h2 class="h3">Muscles this week</h2><span class="muted small">Darker = more sets</span></div>
+  return `<div class="card dc-work"><div class="card-head"><h2 class="h3">Muscles this week</h2><span class="muted small">Darker = more sets</span></div>
     <svg class="body-map" viewBox="0 0 230 200" role="img" aria-label="Body map of muscles trained this week">${front}${back}<text x="60" y="197" text-anchor="middle">Front</text><text x="170" y="197" text-anchor="middle">Back</text></svg>
     <div class="map-notes">${trained.length ? `<div><span class="muted">Most:</span> <b>${esc(trained[0])}</b> <span class="muted">(${mc[trained[0]]} sets)</span></div>` : ''}${missed.length && trained.length ? `<div><span class="muted">Not yet:</span> ${esc(missed.join(', '))}</div>` : ''}${!trained.length ? '<div class="muted">Finish a workout this week to light this up.</div>' : ''}</div></div>`;
 }
@@ -2966,7 +2978,7 @@ function foodSummaryCard(tot, G, show) {
 function waterCard(day) {
   const m = S.meals[day]; const n = (m && m.water) || 0; const goal = S.settings.waterGoal || 8;
   const amt = U() === 'lb' ? `${n * 8} oz` : `${fmtNum(n * 0.25, 2)} L`;
-  return `<div class="card"><div class="card-head"><h2 class="h3">Water</h2><span class="muted">${n} of ${goal} glasses · ${amt}</span></div><div class="drops">${Array.from({ length: Math.max(goal, n) }, (_, i) => `<span class="drop ${i < n ? 'on' : ''}">${ic('drop')}</span>`).join('')}</div><div class="btn-row" style="margin-top:10px"><button class="btn ghost" data-act="water" data-d="-1" ${n ? '' : 'disabled'} aria-label="Remove a glass" style="flex:0 0 64px">−</button><button class="btn soft" data-act="water" data-d="1">${ic('plus')} Add a glass</button></div></div>`;
+  return `<div class="card dc-water"><div class="card-head"><h2 class="h3">Water</h2><span class="muted">${n} of ${goal} glasses · ${amt}</span></div><div class="drops">${Array.from({ length: Math.max(goal, n) }, (_, i) => `<span class="drop ${i < n ? 'on' : ''}">${ic('drop')}</span>`).join('')}</div><div class="btn-row" style="margin-top:10px"><button class="btn ghost" data-act="water" data-d="-1" ${n ? '' : 'disabled'} aria-label="Remove a glass" style="flex:0 0 64px">−</button><button class="btn soft" data-act="water" data-d="1">${ic('plus')} Add a glass</button></div></div>`;
 }
 function smealTotals(sm) { return sumN(sm.items); }
 async function mealMenu(m) {
