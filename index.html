@@ -362,6 +362,14 @@ button.row { width: 100%; text-align: left; }
 .ld-plate.lifting { opacity: .35; }
 .ld-ghost { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; box-shadow: 0 12px 26px rgb(0 0 0 / .35); }
 .ld-dlg .foot-row { flex-wrap: wrap; }
+.ld-svg { touch-action: none; }
+.ld-bar.off { background: color-mix(in srgb, var(--bad) 12%, transparent); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--bad) 60%, transparent); }
+html:not([data-accent="chalk"]) .seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 26%, var(--seg-on)); }
+html:not([data-accent="chalk"]) .tab[aria-current="page"] { color: var(--accent); }
+html:not([data-accent="chalk"]) .tab-ind { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); }
+/* every set done: the exercise card fills with a soft tint */
+.card.excard { transition: background .35s var(--ease), border-color .35s var(--ease); }
+.card.excard.complete { --fillc: var(--c-work, var(--accent)); background: linear-gradient(color-mix(in srgb, var(--fillc) 13%, transparent), color-mix(in srgb, var(--fillc) 13%, transparent)), linear-gradient(180deg, var(--glass-hi), var(--glass)); border-color: color-mix(in srgb, var(--fillc) 38%, transparent); }
 .plate-out { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; }
 .pct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; font-size: .9375rem; }
 .pct div { padding: 7px 4px; border-top: 1px solid var(--line); }
@@ -1602,7 +1610,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 22</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 23</p>`;
 }
 
 // =====================================================================
@@ -1744,7 +1752,7 @@ function cardHTML(ctx, ei) {
     </div></div>`;
   }).join('');
   const rest = restFor(e); const ssg = ssGroups(w)[ei];
-  return `<section class="card excard${ssg ? ' in-ss' : ''}" data-ei="${ei}">${ssg ? `<div class="ss-tag">${ic('link')} Superset ${ssg.letter}</div>` : ''}
+  return `<section class="card excard${ssg ? ' in-ss' : ''}${live && e.sets.length && e.sets.every(x => x.done) ? ' complete' : ''}" data-ei="${ei}">${ssg ? `<div class="ss-tag">${ic('link')} Superset ${ssg.letter}</div>` : ''}
     <div class="ex-head"><button class="exname" data-act="ex-detail" data-exid="${e.exId}">${esc(ex.name)}</button>${loaderOK(ex) ? `<button class="icon-btn" data-act="ex-plates" aria-label="Load plates for ${esc(ex.name)}">${ic('plates')}</button>` : ''}<button class="icon-btn" data-act="ex-menu" aria-label="Options for ${esc(ex.name)}">${ic('dots')}</button></div>
     <div class="ex-meta"><button class="chip" data-act="ex-rest">${ic('timer')} Rest ${rest ? fmtTime(rest) : 'off'}</button><span class="muted small">${esc(ex.muscle)} · ${esc(ex.equip)}</span></div>
     ${ctx === 'active' ? suggestHTML(e, prev) : ''}
@@ -2319,7 +2327,7 @@ function openLoader(ctx, ei) {
   const d = openDialog(`<div class="dlg-title">Load plates</div><p class="muted small" style="margin-top:-4px">${esc(ex.name)} · set <span id="ld-setno">${si + 1}</span></p>
     <div class="ld-total"><span class="num" id="ld-total"></span> <span class="muted">${unit}</span><div class="muted small" id="ld-break"></div></div>
     <div class="ld-bar" id="ld-bar"></div>
-    <p class="muted small" style="text-align:center">Drag or tap a plate to add it. Tap a plate on the bar to take it off.</p>
+    <p class="muted small" style="text-align:center">Drag or tap a plate to add it. Drag a plate off the bar, or tap it, to take it off.</p>
     <div class="ld-tray" id="ld-tray">${plates.map(p => plateChip(p, unit)).join('')}</div>
     <div class="field" style="margin-top:12px"><label class="lbl" for="ld-base">Bar or machine weight (${unit})</label><input class="txt" id="ld-base" inputmode="decimal" value="${fmtNum(base, 2)}" autocomplete="off"></div>
     <div class="field"><span class="lbl">Plates count</span><div class="seg" role="group" aria-label="Plates count"><button data-once="0" aria-pressed="${!once}">Twice (both sides)</button><button data-once="1" aria-pressed="${once}">Once (sled)</button></div></div>
@@ -2336,12 +2344,26 @@ function openLoader(ctx, ei) {
   };
   const add = p => { per.push(p); draw(p); };
   draw();
-  // tap a loaded plate to remove it
-  $('#ld-bar', d.el).addEventListener('click', ev => { const g = ev.target.closest('.ld-on'); if (!g) return; per.splice(+g.dataset.i, 1); draw(); });
   // drag (or tap) from the tray
-  let drag = null;
+  let drag = null, bdrag = null;
   const tray = $('#ld-tray', d.el), barEl = $('#ld-bar', d.el);
-  const overBar = (x, y) => { const r = barEl.getBoundingClientRect(); return x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 30 && y <= r.bottom + 30; };
+  // drag a loaded plate off the bar to remove it (a tap removes it too)
+  barEl.addEventListener('pointerdown', ev => {
+    const g = ev.target.closest('.ld-on'); if (!g) return; ev.preventDefault();
+    bdrag = { g, i: +g.dataset.i, x: ev.clientX, y: ev.clientY, ghost: null, id: ev.pointerId }; try { barEl.setPointerCapture(ev.pointerId); } catch (e) {}
+  });
+  barEl.addEventListener('pointermove', ev => {
+    if (!bdrag || ev.pointerId !== bdrag.id) return;
+    if (!bdrag.ghost && Math.hypot(ev.clientX - bdrag.x, ev.clientY - bdrag.y) > 6) { const w = document.createElement('div'); w.innerHTML = plateChip(per[bdrag.i], unit); bdrag.ghost = w.firstElementChild; bdrag.ghost.classList.add('ld-ghost'); document.body.appendChild(bdrag.ghost); bdrag.g.style.opacity = '.2'; }
+    if (bdrag.ghost) { bdrag.ghost.style.transform = `translate(${ev.clientX - 20}px, ${ev.clientY - 30}px)`; barEl.classList.toggle('off', !overBar(ev.clientX, ev.clientY)); }
+  });
+  const bend = ev => {
+    if (!bdrag || ev.pointerId !== bdrag.id) return; const b = bdrag; bdrag = null; barEl.classList.remove('off');
+    if (b.ghost) { b.ghost.remove(); if (ev.type === 'pointerup' && !overBar(ev.clientX, ev.clientY)) { per.splice(b.i, 1); draw(); } else b.g.style.opacity = ''; }
+    else if (ev.type === 'pointerup') { per.splice(b.i, 1); draw(); }
+  };
+  barEl.addEventListener('pointerup', bend); barEl.addEventListener('pointercancel', bend);
+  const overBar = (x, y) => { const r = barEl.getBoundingClientRect(); return x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 24 && y <= r.bottom + 24; };
   tray.addEventListener('pointerdown', ev => {
     const b = ev.target.closest('.ld-plate'); if (!b) return; ev.preventDefault();
     drag = { b, p: Number(b.dataset.p), x: ev.clientX, y: ev.clientY, ghost: null, id: ev.pointerId }; try { b.setPointerCapture(ev.pointerId); } catch (e) {}
@@ -3687,7 +3709,7 @@ const ACT = {
   'body-del': el => { const d = el.dataset.d, demo = el.dataset.demo === '1'; const i = (S.body || []).findIndex(b => b.d === d && !!b.demo === demo); if (i < 0) return; const old = S.body[i]; S.body.splice(i, 1); if (!demo) commit('body'); else saveLocal(); openBodyList(); renderView(); undoToast('Weight entry deleted', () => { S.body.splice(i, 0, old); if (!demo) commit('body'); else saveLocal(); if (sheetEl('body')) openBodyList(); renderView(); }); },
   'set': el => {
     const k = el.dataset.key; let v = el.dataset.val; if (NUM_SETTINGS.has(k)) v = Number(v);
-    S.settings[k] = v; commit('settings'); applySettings(); renderAll();
+    S.settings[k] = v; if (k === 'accent') S.settings.tint = v !== 'chalk'; commit('settings'); applySettings(); renderAll();
   },
   'toggle': el => { const k = el.dataset.key; S.settings[k] = !S.settings[k]; commit('settings'); el.setAttribute('aria-checked', String(S.settings[k])); if (k === 'tint') applySettings(); if (k === 'restSound' && S.settings[k]) { unlockAudio(); beep(); } if (sheetEl('active')) renderEditor('active'); },
   'plate-toggle': el => { const p = Number(el.dataset.val); const key = U() === 'lb' ? 'platesLb' : 'platesKg'; const a = S.settings[key].slice(); const i = a.indexOf(p); if (i >= 0) a.splice(i, 1); else a.push(p); S.settings[key] = a.sort((x, y) => y - x); commit('settings'); renderView(); },
