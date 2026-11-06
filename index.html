@@ -1552,8 +1552,7 @@ function histCard(w) {
 function viewProgress() {
   const all = workoutsSorted(); const now = Date.now();
   let h = demoBanner();
-  const since = now - 30 * DAY; const mc = {};
-  for (const w of all) { if (w.start < since) break; for (const e of w.exercises) { const m = getEx(e.exId).muscle; mc[m] = (mc[m] || 0) + working(e.sets).length; } }
+  const since = now - 30 * DAY; const mc = muscleSetCounts(since);
   const ms = Object.entries(mc).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]); const mx = ms.length ? ms[0][1] : 1;
   h += `<div class="card dc-work"><div class="card-head"><h2 class="h3">Working sets by muscle</h2><span class="muted small">Last 30 days</span></div>${ms.length ? `<div class="mbars">${ms.map(([m, n]) => `<span>${esc(m)}</span><div class="track"><div class="fillbar" style="width:${n / mx * 100}%"></div></div><span class="val">${n}</span>`).join('')}</div>` : `<p class="empty">Log a workout to see which muscles you're training most.</p>`}</div>`;
   h += muscleMapCard();
@@ -1622,7 +1621,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 24</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 25</p>`;
 }
 
 // =====================================================================
@@ -2160,9 +2159,12 @@ function pickToggle(id) {
 }
 function pickDone() { const P = UI.pick; if (!P) return; UI.pick = null; closeSheet('pick'); P.resolve(P.sel.slice()); }
 
+const MUSCLE_GUESS = [[/calf|calves/i, 'Calves'], [/leg curl|hamstring|nordic|good morning|romanian|\brdl\b|stiff/i, 'Hamstrings'], [/hip thrust|glute|abduct|sumo/i, 'Glutes'], [/squat|lunge|leg press|leg extension|step-?up|split|hack|pendulum|sissy|wall sit|sled/i, 'Quads'], [/rowing machine|\berg\b|treadmill|bike|cycl|ellip|swim|stair|jump rope|\brun|walk|cardio/i, 'Cardio'], [/wrist|forearm|gripper|farmer|dead hang|reverse curl/i, 'Forearms'], [/tricep|pushdown|skull|close-?grip|\bdips?\b/i, 'Triceps'], [/curl/i, 'Biceps'], [/plank|crunch|\babs?\b|sit-?up|core|oblique|leg raise|knee raise|russian|wood ?chop|rollout|dead bug/i, 'Core'], [/shoulder|overhead|lateral|front raise|rear delt|reverse pec|delt|military|arnold|face pull|upright|landmine press/i, 'Shoulders'], [/\brows?\b|pull-?up|\bchin|pulldown|\blats?\b|deadlift|rack pull|shrug|back ext/i, 'Back'], [/bench|chest|\bfly|flye|pec|push-?up|crossover|incline|decline/i, 'Chest']];
+const EQUIP_GUESS = [[/barbell|\(bb\)|smith/i, 'Barbell'], [/dumbbell|\bdb\b/i, 'Dumbbell'], [/machine|leg press|hack|sled|pec deck|leg extension|leg curl/i, 'Machine'], [/cable|pulldown|pushdown/i, 'Cable'], [/kettlebell|\bkb\b/i, 'Kettlebell'], [/band/i, 'Band'], [/push-?up|pull-?up|chin-?up|dip|plank|bodyweight/i, 'Bodyweight']];
+const guessFrom = (list, name) => { const g = list.find(([rx]) => rx.test(name)); return g ? g[1] : null; };
 function exerciseForm(existing, presetName = '') {
   return new Promise(res => {
-    const e = existing || { name: presetName, muscle: 'Chest', equip: 'Barbell', type: 'wr', rest: null };
+    const e = existing || { name: presetName, muscle: guessFrom(MUSCLE_GUESS, presetName) || 'Chest', equip: guessFrom(EQUIP_GUESS, presetName) || 'Barbell', type: 'wr', rest: null };
     let type = e.type;
     const d = openDialog(`<div class="dlg-title">${existing ? 'Edit exercise' : 'New exercise'}</div>
       <div class="field"><label class="lbl" for="xf-name">Name</label><input class="txt" id="xf-name" value="${esc(e.name)}" placeholder="For example, Landmine Press" autocomplete="off"></div>
@@ -2172,6 +2174,8 @@ function exerciseForm(existing, presetName = '') {
       <div class="field"><label class="lbl" for="xf-r">Rest timer</label><select class="txt" id="xf-r"><option value="">Use my default (${S.settings.rest ? fmtTime(S.settings.rest) : 'off'})</option>${REST_OPTS.map(x => `<option value="${x}" ${e.rest === x ? 'selected' : ''}>${x ? fmtTime(x) : 'Off'}</option>`).join('')}</select></div>
       ${existing ? `<button class="btn danger-text" data-x="del">Remove from library</button>` : ''}
       <div class="foot-row"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn primary" data-x="save">Save</button></div>`, { onClose: () => res(null) });
+    if (!existing) { let tm = false, te = false; $('#xf-m', d.el).addEventListener('change', () => { tm = true; }); $('#xf-e', d.el).addEventListener('change', () => { te = true; });
+      $('#xf-name', d.el).addEventListener('input', ev => { const v = ev.target.value; const m = guessFrom(MUSCLE_GUESS, v), q = guessFrom(EQUIP_GUESS, v); if (m && !tm) $('#xf-m', d.el).value = m; if (q && !te) $('#xf-e', d.el).value = q; }); }
     d.el.addEventListener('click', ev => {
       const t = ev.target.closest('[data-type]');
       if (t) { type = t.dataset.type; $$('[data-type]', d.el).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.type === type))); return; }
@@ -3053,9 +3057,14 @@ function recordsCard() {
   return `<div class="card"><div class="card-head"><h2 class="h3">Personal records</h2><span class="muted small">Best ever</span></div>${(UI.recAll ? list : list.slice(0, 6)).map(r => `<button class="exrow" data-act="ex-detail" data-exid="${r.id}"><div style="min-width:0"><div>${esc(getEx(r.id).name)}</div><div class="muted small">${PR_KINDS[r.k].label} · ${fmtShort(r.when)}</div></div><div class="r"><b class="pr-val">${PR_KINDS[r.k].fmt(r.v, r.t)}</b></div></button>`).join('')}${list.length > 6 && !UI.recAll ? `<button class="link" data-act="rec-all">Show all ${list.length}</button>` : ''}</div>`;
 }
 const MAP_MUSCLES = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Core', 'Quads', 'Hamstrings', 'Glutes', 'Calves'];
+function muscleSetCounts(since) {
+  const mc = {}; const add = w => { for (const e of w.exercises) { const m = getEx(e.exId).muscle; mc[m] = (mc[m] || 0) + working(e.sets).length; } };
+  for (const w of workoutsSorted()) { if (w.start < since) break; add(w); }
+  if (S.active && S.active.start >= since) add(S.active);
+  return mc;
+}
 function muscleMapCard() {
-  const ws = startOfWeek(Date.now()); const mc = {};
-  for (const w of workoutsSorted()) { if (w.start < ws) break; for (const e of w.exercises) { const m = getEx(e.exId).muscle; mc[m] = (mc[m] || 0) + working(e.sets).length; } }
+  const ws = startOfWeek(Date.now()); const mc = muscleSetCounts(ws);
   const f = m => { const n = mc[m] || 0; return n ? `fill="var(--accent)" fill-opacity="${(0.28 + 0.72 * Math.min(1, n / 12)).toFixed(2)}"` : 'fill="var(--surface-2)"'; };
   const t = m => `<title>${m}: ${mc[m] || 0} set${mc[m] === 1 ? '' : 's'}</title>`;
   const R = (m, x, y, w, h, rx) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" ${f(m)}>${t(m)}</rect>`;
