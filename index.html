@@ -433,6 +433,19 @@ html:not([data-accent="chalk"]) .tab-ind { background: color-mix(in srgb, var(--
 .nut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; margin: 16px 0 8px; }
 .nut-top { display: flex; justify-content: space-between; gap: 4px 8px; font-size: .9375rem; flex-wrap: wrap; }
 .goalbar.thin { height: 5px; margin-top: 6px; }
+.wc-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.wc-big { font-size: 1.6rem; font-weight: 700; }
+.weekcal .goalbar { margin-top: 8px; }
+.wc-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0 10px; }
+.wc-day { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .75rem; font-weight: 700; color: var(--muted); }
+.wc-day.today { color: var(--ink); }
+.wc-col { position: relative; width: 100%; max-width: 26px; height: 44px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.wc-col i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--accent); border-radius: 4px 4px 0 0; }
+.wc-col i.over { background: light-dark(#D93636, #FF5A5A); }
+.wc-col b { position: absolute; left: 0; right: 0; height: 0; border-top: 1.5px dashed var(--muted); opacity: .7; }
+.wc-day.future .wc-col { opacity: .5; }
+.wc-day.today .wc-col { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.wc-target { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 1.05rem; }
 .goals .goal-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .goals .goal-item:last-child { border-bottom: 0; }
 .gi-ring { flex: none; }
@@ -1630,7 +1643,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 26</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 27</p>`;
 }
 
 // =====================================================================
@@ -2634,6 +2647,36 @@ Coffee, black|1 cup (237 g)|2|0.3|0|0|0|0|5|0|0`;
 const FOODS = FOODS_RAW.trim().split('\n').map(l => { const a = l.split('|'); const o = { id: 'bf-' + slug(a[0]), name: a[0], serv: a[1], builtin: true }; NUTR.forEach((n, j) => { o[n.k] = parseFloat(a[2 + j]); }); return o; });
 const fmtN = (v, k) => v == null || isNaN(v) ? '–' : (k === 'cal' || k === 'na' || k === 'chol') ? fmtBig(v) : fmtNum(v, 1);
 const dayEntries = day => (S.meals[day] && S.meals[day].entries) || [];
+// Weekly calorie budget: daily goal × 7. Days with nothing logged count as on target.
+function weekCalCard(day, calG) {
+  if (!calG) return '';
+  const today = dayKey(Date.now()); const ws = dayKey(startOfWeek(new Date(day + 'T12:00').getTime()));
+  const days = Array.from({ length: 7 }, (_, i) => shiftDay(ws, i)); const budget = calG * 7;
+  const info = days.map(d => { const es = dayEntries(d); return { d, cal: sumN(es).cal || 0, logged: es.length > 0, past: d < today, isToday: d === today, future: d > today }; });
+  const counted = x => x.logged ? x.cal : calG;
+  const before = info.filter(x => x.past).reduce((a, x) => a + counted(x), 0);
+  const unloggedPast = info.some(x => x.past && !x.logged);
+  const cur = info.some(x => x.isToday);
+  const todayCal = cur ? info.find(x => x.isToday).cal : 0;
+  const used = cur ? before + todayCal : info.reduce((a, x) => a + (x.future ? 0 : counted(x)), 0);
+  const left = budget - used; const pct = Math.min(100, used / budget * 100);
+  const daysLeft = info.filter(x => x.isToday || x.future).length;
+  const pace = info.filter(x => x.past).reduce((a, x) => a + counted(x) - calG, 0);
+  const L = d => new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'narrow' });
+  const strip = info.map(x => { const h = x.logged ? Math.min(1.25, x.cal / calG) : 0; const over = x.cal > calG * 1.05;
+    return `<div class="wc-day ${x.isToday ? 'today' : ''} ${x.future ? 'future' : ''}" title="${esc(dayLabel(x.d))}: ${x.logged ? fmtBig(x.cal) + ' cal' : 'nothing logged'}"><div class="wc-col"><i class="${over ? 'over' : ''}" style="height:${(h / 1.25 * 100).toFixed(0)}%"></i><b style="bottom:${(1 / 1.25 * 100).toFixed(0)}%"></b></div><span>${L(x.d)}</span></div>`; }).join('');
+  let msg;
+  if (cur) {
+    const target = Math.round((budget - before) / daysLeft);
+    msg = `<div class="wc-target"><span class="muted">Today's target</span> <b class="num">${fmtBig(Math.max(0, target))} cal</b></div><div class="muted small">${daysLeft > 1 ? `Spread over the ${daysLeft} days left, today included. ` : 'Last day of the week. '}${Math.abs(pace) < calG * 0.03 ? 'Right on pace so far.' : pace > 0 ? `${fmtBig(pace)} over for the week so far.` : `${fmtBig(-pace)} under for the week so far.`}</div>`;
+  } else if (days[0] > today) msg = `<div class="muted small">This week hasn't started yet.</div>`;
+  else if (!info.some(x => x.logged)) return `<div class="card weekcal"><div class="card-head"><h2 class="h3">Week of ${esc(new Date(ws + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</h2></div><p class="muted">Nothing logged that week.</p></div>`;
+  else { const avg = Math.round(used / 7); msg = `<div class="muted small">Averaged ${fmtBig(avg)} cal a day · ${left >= 0 ? fmtBig(left) + ' under' : fmtBig(-left) + ' over'} budget.</div>`; }
+  return `<div class="card weekcal"><div class="card-head"><h2 class="h3">${cur ? 'This week' : 'Week of ' + esc(new Date(ws + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</h2><span class="muted small">${fmtBig(calG)} a day × 7</span></div>
+    <div class="wc-top"><div><span class="num wc-big">${fmtBig(used)}</span> <span class="muted">/ ${fmtBig(budget)} cal</span></div><div class="muted small">${left >= 0 ? `${fmtBig(left)} left` : `${fmtBig(-left)} over`}</div></div>
+    <div class="goalbar"><i style="width:${pct.toFixed(1)}%"></i></div>
+    <div class="wc-strip">${strip}</div>${msg}${unloggedPast ? `<div class="muted small" style="margin-top:4px">Days you didn't log count as on target.</div>` : ''}</div>`;
+}
 function sumN(entries) { const t = {}; NUTR.forEach(n => { t[n.k] = 0; }); for (const e of entries) { const q = e.qty || 1; NUTR.forEach(n => { if (e[n.k] != null) t[n.k] += e[n.k] * q; }); } return t; }
 function mealGuess() { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 10.5 ? 'b' : h < 15 ? 'l' : h < 21 ? 'd' : 's'; }
 function shiftDay(day, n) { const d = new Date((day || dayKey(Date.now())) + 'T12:00'); d.setDate(d.getDate() + n); return dayKey(d.getTime()); }
@@ -2709,6 +2752,7 @@ function viewFood() {
   const isToday = day === dayKey(Date.now()); const calG = G.cal;
   let h = `<div class="card daynav"><button class="icon-btn" data-act="food-prev" aria-label="Previous day">${ic('left')}</button><div style="text-align:center"><div class="h3">${esc(dayLabel(day))}</div>${isToday ? `<div class="muted small">${ents.length} item${ents.length === 1 ? '' : 's'} logged</div>` : `<button class="link" data-act="food-today">Back to today</button>`}</div><button class="icon-btn" data-act="food-next" aria-label="Next day" ${isToday ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button></div>`;
   h += foodSummaryCard(tot, G, show);
+  h += weekCalCard(day, calG);
   h += waterCard(day);
   for (const [m, label] of MEALS) {
     const me = ents.filter(e => e.meal === m); const mc = me.reduce((s, e) => s + (e.cal || 0) * (e.qty || 1), 0);
