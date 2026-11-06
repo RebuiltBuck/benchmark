@@ -361,7 +361,19 @@ button.row { width: 100%; text-align: left; }
 .ld-plate { display: grid; place-items: center; padding: 0; width: 40px; height: var(--ph); border-radius: 8px; background: var(--pc); font-weight: 800; font-size: .85rem; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .22), 0 2px 6px rgb(0 0 0 / .22); touch-action: none; user-select: none; -webkit-user-select: none; transition: opacity .12s; }
 .ld-plate.lifting { opacity: .35; }
 .ld-ghost { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; box-shadow: 0 12px 26px rgb(0 0 0 / .35); }
-.ld-dlg .foot-row { flex-wrap: wrap; }
+.ld-panel { margin: 8px 0 10px; padding: 10px 10px 8px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
+.ld-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ld-panel .ld-total { font-size: 1.7rem; margin: 0; text-align: right; }
+.ld-panel select.txt { width: auto; min-height: 36px; padding: 6px 30px 6px 10px; font-size: .9rem; }
+.ld-panel .ld-bar { margin-top: 6px; }
+.ld-panel .ld-tray { min-height: 60px; margin-top: 4px; gap: 6px; }
+.ld-panel .ld-plate { width: 36px; font-size: .8rem; }
+.ld-opts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+.ld-opt { display: flex; align-items: center; gap: 6px; }
+.ld-opts .link { margin-left: auto; }
+.ld-hint { margin-top: 6px; }
+.icon-btn.ld-btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
 .ld-svg { touch-action: none; }
 .ld-bar.off { background: color-mix(in srgb, var(--bad) 12%, transparent); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--bad) 60%, transparent); }
 html:not([data-accent="chalk"]) .seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 26%, var(--seg-on)); }
@@ -1610,7 +1622,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 23</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 24</p>`;
 }
 
 // =====================================================================
@@ -1753,8 +1765,9 @@ function cardHTML(ctx, ei) {
   }).join('');
   const rest = restFor(e); const ssg = ssGroups(w)[ei];
   return `<section class="card excard${ssg ? ' in-ss' : ''}${live && e.sets.length && e.sets.every(x => x.done) ? ' complete' : ''}" data-ei="${ei}">${ssg ? `<div class="ss-tag">${ic('link')} Superset ${ssg.letter}</div>` : ''}
-    <div class="ex-head"><button class="exname" data-act="ex-detail" data-exid="${e.exId}">${esc(ex.name)}</button>${loaderOK(ex) ? `<button class="icon-btn" data-act="ex-plates" aria-label="Load plates for ${esc(ex.name)}">${ic('plates')}</button>` : ''}<button class="icon-btn" data-act="ex-menu" aria-label="Options for ${esc(ex.name)}">${ic('dots')}</button></div>
+    <div class="ex-head"><button class="exname" data-act="ex-detail" data-exid="${e.exId}">${esc(ex.name)}</button>${loaderOK(ex) ? `<button class="icon-btn ld-btn" data-act="ex-plates" aria-pressed="${!!ldState(ctx, ei)}" aria-label="Plate loader for ${esc(ex.name)}">${ic('plates')}</button>` : ''}<button class="icon-btn" data-act="ex-menu" aria-label="Options for ${esc(ex.name)}">${ic('dots')}</button></div>
     <div class="ex-meta"><button class="chip" data-act="ex-rest">${ic('timer')} Rest ${rest ? fmtTime(rest) : 'off'}</button><span class="muted small">${esc(ex.muscle)} · ${esc(ex.equip)}</span></div>
+    ${ldPanel(ctx, ei, e, ex)}
     ${ctx === 'active' ? suggestHTML(e, prev) : ''}
     ${e.note != null && live ? `<textarea class="txt exnote" data-note rows="1" placeholder="Note for this exercise">${esc(e.note)}</textarea>` : ''}
     <div class="sets" style="--cols:${cols}">${head}${rows}</div>
@@ -2303,9 +2316,9 @@ function loaderPrefs(ex) {
   if (saved && saved.unit === unit) return { base: saved.base, once: !!saved.once };
   return { base: ex.equip === 'Barbell' ? (unit === 'lb' ? S.settings.barLb : S.settings.barKg) : 0, once: ONCE_RX.test(ex.name) };
 }
-function loaderSVG(per, unit, once) {
-  const st = PLATE_STYLE[unit]; const H = 150, cy = 75; let x = 64; let plates = '';
-  per.forEach((p, i) => { const [col, hPct, w0] = st[p] || ['#888', 50, 6]; const w = w0 * 1.15, h = 128 * hPct / 100;
+function loaderSVG(per, unit, once, compact) {
+  const st = PLATE_STYLE[unit]; const H = compact ? 96 : 150, cy = H / 2, PH = compact ? 84 : 128; let x = 64; let plates = '';
+  per.forEach((p, i) => { const [col, hPct, w0] = st[p] || ['#888', 50, 6]; const w = w0 * 1.15, h = PH * hPct / 100;
     plates += `<g class="ld-on" data-i="${i}" style="--d:${i * 25}ms"><rect x="${x}" y="${cy - h / 2}" width="${w}" height="${h}" rx="3" fill="${col}" stroke="rgb(0 0 0 / .28)" stroke-width="1"/><rect x="${x - 1}" y="${cy - h / 2 - 4}" width="${w + 2}" height="${h + 8}" fill="transparent"/></g>`; x += w + 2; });
   const end = Math.max(x + 16, 300);
   const sleeve = `<rect x="0" y="${cy - 7}" width="64" height="14" rx="2" fill="var(--muted)" opacity=".5"/><rect x="50" y="${cy - 18}" width="14" height="36" rx="2" fill="var(--muted)"/><rect x="64" y="${cy - 10}" width="${end - 64}" height="20" rx="3" fill="var(--muted)" opacity=".8"/>`;
@@ -2315,84 +2328,83 @@ function plateChip(p, unit) {
   const [col, hPct] = PLATE_STYLE[unit][p] || ['#888', 50]; const light = /#F2F2F2|#B8BCC2|#E8B511/i.test(col);
   return `<button class="ld-plate" data-p="${p}" style="--pc:${col};--ph:${Math.max(40, hPct * 0.74)}px;color:${light ? '#111' : '#fff'}" aria-label="Add ${p} ${unit} plate">${fmtNum(p, 2)}</button>`;
 }
-function openLoader(ctx, ei) {
-  const dr = draftOf(ctx); const e = dr && dr.exercises[ei]; if (!e) return; const ex = getEx(e.exId); const unit = U();
-  const plates = [...(unit === 'lb' ? S.settings.platesLb : S.settings.platesKg)].sort((a, b) => b - a);
-  let si = e.sets.findIndex(s => !s.done); if (si < 0) si = e.sets.length - 1; if (si < 0) { e.sets.push(ctx === 'routine' ? { type: 'n', w: null, r: null, t: null, d: null } : { type: 'n', done: false }); si = 0; }
-  const pref = loaderPrefs(ex); let base = pref.base, once = pref.once, scope = 'one';
-  const cur = e.sets[si].w != null ? toDispW(e.sets[si].w) : null;
-  let per = [];
-  if (cur != null && cur > base) { const c = once ? plateCalc(base + (cur - base) * 2, base, plates) : plateCalc(cur, base, plates); per = c.per; }
-  const total = () => base + per.reduce((a, b) => a + b, 0) * (once ? 1 : 2);
-  const d = openDialog(`<div class="dlg-title">Load plates</div><p class="muted small" style="margin-top:-4px">${esc(ex.name)} · set <span id="ld-setno">${si + 1}</span></p>
-    <div class="ld-total"><span class="num" id="ld-total"></span> <span class="muted">${unit}</span><div class="muted small" id="ld-break"></div></div>
-    <div class="ld-bar" id="ld-bar"></div>
-    <p class="muted small" style="text-align:center">Drag or tap a plate to add it. Drag a plate off the bar, or tap it, to take it off.</p>
-    <div class="ld-tray" id="ld-tray">${plates.map(p => plateChip(p, unit)).join('')}</div>
-    <div class="field" style="margin-top:12px"><label class="lbl" for="ld-base">Bar or machine weight (${unit})</label><input class="txt" id="ld-base" inputmode="decimal" value="${fmtNum(base, 2)}" autocomplete="off"></div>
-    <div class="field"><span class="lbl">Plates count</span><div class="seg" role="group" aria-label="Plates count"><button data-once="0" aria-pressed="${!once}">Twice (both sides)</button><button data-once="1" aria-pressed="${once}">Once (sled)</button></div></div>
-    <div class="field"><span class="lbl">Use for</span><div class="seg" role="group" aria-label="Use for"><button data-scope="one" aria-pressed="true">This set</button><button data-scope="left" aria-pressed="false">All sets left</button></div></div>
-    <div class="foot-row"><button class="btn ghost" data-x="clear">Clear</button><button class="btn ghost" data-x="0">Cancel</button><button class="btn primary" data-x="1" id="ld-use">Use</button></div>`);
-  d.el.classList.add('ld-dlg');
-  const draw = (anim) => {
-    per.sort((a, b) => b - a); const t = total();
-    $('#ld-bar', d.el).innerHTML = loaderSVG(per, unit, once); if (anim != null) { const g = $(`.ld-on[data-i="${per.lastIndexOf(anim)}"]`, d.el); if (g) g.classList.add('pop'); }
-    $('#ld-total', d.el).textContent = fmtNum(t, 2);
-    const sum = per.reduce((a, b) => a + b, 0);
-    $('#ld-break', d.el).textContent = per.length ? `${fmtNum(base, 2)} ${base ? 'base' : ''} + ${once ? fmtNum(sum, 2) + ' in plates' : `2 × ${fmtNum(sum, 2)} per side`}`.replace('  ', ' ') : (base ? `Just the ${ex.equip === 'Barbell' ? 'bar' : 'machine'}` : 'Add plates');
-    $('#ld-use', d.el).textContent = `Use ${fmtNum(t, 2)} ${unit}`;
-  };
-  const add = p => { per.push(p); draw(p); };
-  draw();
-  // drag (or tap) from the tray
-  let drag = null, bdrag = null;
-  const tray = $('#ld-tray', d.el), barEl = $('#ld-bar', d.el);
-  // drag a loaded plate off the bar to remove it (a tap removes it too)
-  barEl.addEventListener('pointerdown', ev => {
-    const g = ev.target.closest('.ld-on'); if (!g) return; ev.preventDefault();
-    bdrag = { g, i: +g.dataset.i, x: ev.clientX, y: ev.clientY, ghost: null, id: ev.pointerId }; try { barEl.setPointerCapture(ev.pointerId); } catch (e) {}
+// The loader lives inside the exercise card: the plates button toggles it.
+function ldState(ctx, ei) { const L = UI.ld; if (!L || L.ctx !== ctx || L.ei !== ei) return null; const d = draftOf(ctx); const e = d && d.exercises[ei]; return e && e.exId === L.exId ? L : null; }
+function ldTargets(L, e) { return L.si === 'left' ? e.sets.filter((s, i) => i >= L.from && !s.done) : [e.sets[L.si]].filter(Boolean); }
+function ldTotal(L) { return L.base + L.per.reduce((a, b) => a + b, 0) * (L.once ? 1 : 2); }
+function ldFromWeight(L, kg, plates) {
+  const cur = kg != null ? toDispW(kg) : null; L.per = [];
+  if (cur != null && cur > L.base + 1e-9) L.per = (L.once ? plateCalc(L.base + (cur - L.base) * 2, L.base, plates) : plateCalc(cur, L.base, plates)).per;
+}
+const ldPlates = () => [...(U() === 'lb' ? S.settings.platesLb : S.settings.platesKg)].sort((a, b) => b - a);
+function toggleLoader(ctx, ei) {
+  if (ldState(ctx, ei)) { UI.ld = null; rerenderCard(ctx, ei); return; }
+  const prev = UI.ld; UI.ld = null; if (prev && prev.ctx === ctx) rerenderCard(prev.ctx, prev.ei);
+  const e = draftOf(ctx).exercises[ei]; const ex = getEx(e.exId);
+  if (!e.sets.length) e.sets.push(ctx === 'routine' ? { type: 'n', w: null, r: null, t: null, d: null } : { type: 'n', done: false });
+  let si = e.sets.findIndex(s => !s.done); if (si < 0) si = e.sets.length - 1;
+  const pref = loaderPrefs(ex); UI.ld = { ctx, ei, exId: e.exId, si, from: si, base: pref.base, once: pref.once, per: [] };
+  ldFromWeight(UI.ld, e.sets[si].w, ldPlates());
+  rerenderCard(ctx, ei);
+}
+function ldApply(ctx, ei, pop) {
+  const L = ldState(ctx, ei); if (!L) return; const e = draftOf(ctx).exercises[ei]; const ex = getEx(e.exId);
+  L.per.sort((a, b) => b - a); const t = ldTotal(L); const kg = t > 0 ? fromDispW(t) : null;
+  ldTargets(L, e).forEach(s => { s.w = kg; });
+  S.settings.loader = { ...(S.settings.loader || {}), [ex.id]: { base: L.base, once: L.once, unit: U() } }; commit('settings');
+  L.pop = pop; touch(ctx); rerenderCard(ctx, ei); L.pop = null;
+}
+function ldPanelInner(L, e, ex) {
+  const unit = U(); const t = ldTotal(L); const sum = L.per.reduce((a, b) => a + b, 0);
+  const baseOpts = [...new Set([...(unit === 'lb' ? [0, 10, 15, 20, 25, 35, 45, 55] : [0, 5, 7, 10, 15, 20, 25]), L.base])].sort((a, b) => a - b);
+  const svg = loaderSVG(L.per, unit, L.once, true).replace(/class="ld-on" data-i="(\d+)"/g, (m, i) => (L.pop != null && +i === L.per.lastIndexOf(L.pop) ? 'class="ld-on pop"' : 'class="ld-on"') + ` data-i="${i}"`);
+  return `<div class="ld-top"><select class="txt sm" data-ld="si" aria-label="Which sets get this weight">${e.sets.map((s, i) => `<option value="${i}" ${L.si === i ? 'selected' : ''}>Set ${s.type === 'w' ? 'W' : i + 1 - e.sets.slice(0, i).filter(x => x.type === 'w').length}${s.done ? ' ✓' : ''}</option>`).join('')}<option value="left" ${L.si === 'left' ? 'selected' : ''}>All sets left</option></select>
+      <div class="ld-total"><span class="num">${fmtNum(t, 2)}</span> <span class="muted small">${unit}</span></div></div>
+    <div class="ld-bar">${svg}</div>
+    <div class="ld-tray">${ldPlates().map(p => plateChip(p, unit)).join('')}</div>
+    <div class="ld-opts"><select class="txt sm" data-ld="base" aria-label="Bar or machine weight">${baseOpts.map(v => `<option value="${v}" ${v === L.base ? 'selected' : ''}>Base ${fmtNum(v, 2)} ${unit}</option>`).join('')}<option value="custom">Other…</option></select>
+      <select class="txt sm" data-ld="once" aria-label="How plates count"><option value="0" ${!L.once ? 'selected' : ''}>Plates ×2</option><option value="1" ${L.once ? 'selected' : ''}>Plates ×1</option></select>
+      <button class="link" data-act="ld-clear" ${L.per.length ? '' : 'disabled'}>Clear</button></div>
+    <p class="muted small ld-hint">${L.per.length ? `${fmtNum(L.base, 2)} + ${L.once ? fmtNum(sum, 2) : '2 × ' + fmtNum(sum, 2)}` : 'Drag or tap plates onto the bar'} · drag one off to remove it</p>`;
+}
+function ldPanel(ctx, ei, e, ex) { const L = ldState(ctx, ei); return L ? `<div class="ld-panel">${ldPanelInner(L, e, ex)}</div>` : ''; }
+function ldRefreshPanel(ctx, ei) { const L = ldState(ctx, ei); const card = $(`.excard[data-ei="${ei}"]`, sheetEl(ctx)); const pn = card && $('.ld-panel', card); if (!L || !pn) return; const e = draftOf(ctx).exercises[ei]; pn.innerHTML = ldPanelInner(L, e, getEx(e.exId)); }
+// drag and tap handling (delegated, since cards re-render)
+(() => {
+  let dg = null;
+  const ghostOf = (p) => { const w = document.createElement('div'); w.innerHTML = plateChip(p, U()); const g = w.firstElementChild; g.classList.add('ld-ghost'); document.body.appendChild(g); return g; };
+  const barOf = el => { const pn = el.closest('.ld-panel'); return pn && $('.ld-bar', pn); };
+  const over = (bar, x, y) => { const r = bar.getBoundingClientRect(); return x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 24 && y <= r.bottom + 24; };
+  document.addEventListener('pointerdown', ev => {
+    const chip = ev.target.closest('.ld-panel .ld-plate'), on = !chip && ev.target.closest('.ld-panel .ld-on'); if (!chip && !on) return;
+    ev.preventDefault(); const c = ctxInfo(ev.target); const bar = barOf(ev.target);
+    dg = { c, bar, from: chip ? 'tray' : 'bar', p: chip ? Number(chip.dataset.p) : null, i: on ? +on.dataset.i : null, el: chip || on, x: ev.clientX, y: ev.clientY, ghost: null, id: ev.pointerId };
+    try { ev.target.setPointerCapture(ev.pointerId); } catch (e) {}
   });
-  barEl.addEventListener('pointermove', ev => {
-    if (!bdrag || ev.pointerId !== bdrag.id) return;
-    if (!bdrag.ghost && Math.hypot(ev.clientX - bdrag.x, ev.clientY - bdrag.y) > 6) { const w = document.createElement('div'); w.innerHTML = plateChip(per[bdrag.i], unit); bdrag.ghost = w.firstElementChild; bdrag.ghost.classList.add('ld-ghost'); document.body.appendChild(bdrag.ghost); bdrag.g.style.opacity = '.2'; }
-    if (bdrag.ghost) { bdrag.ghost.style.transform = `translate(${ev.clientX - 20}px, ${ev.clientY - 30}px)`; barEl.classList.toggle('off', !overBar(ev.clientX, ev.clientY)); }
-  });
-  const bend = ev => {
-    if (!bdrag || ev.pointerId !== bdrag.id) return; const b = bdrag; bdrag = null; barEl.classList.remove('off');
-    if (b.ghost) { b.ghost.remove(); if (ev.type === 'pointerup' && !overBar(ev.clientX, ev.clientY)) { per.splice(b.i, 1); draw(); } else b.g.style.opacity = ''; }
-    else if (ev.type === 'pointerup') { per.splice(b.i, 1); draw(); }
-  };
-  barEl.addEventListener('pointerup', bend); barEl.addEventListener('pointercancel', bend);
-  const overBar = (x, y) => { const r = barEl.getBoundingClientRect(); return x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 24 && y <= r.bottom + 24; };
-  tray.addEventListener('pointerdown', ev => {
-    const b = ev.target.closest('.ld-plate'); if (!b) return; ev.preventDefault();
-    drag = { b, p: Number(b.dataset.p), x: ev.clientX, y: ev.clientY, ghost: null, id: ev.pointerId }; try { b.setPointerCapture(ev.pointerId); } catch (e) {}
-  });
-  tray.addEventListener('pointermove', ev => {
-    if (!drag || ev.pointerId !== drag.id) return;
-    if (!drag.ghost && Math.hypot(ev.clientX - drag.x, ev.clientY - drag.y) > 6) { const g = drag.b.cloneNode(true); g.classList.add('ld-ghost'); document.body.appendChild(g); drag.ghost = g; drag.b.classList.add('lifting'); }
-    if (drag.ghost) { drag.ghost.style.transform = `translate(${ev.clientX - 22}px, ${ev.clientY - 30}px)`; barEl.classList.toggle('hot', overBar(ev.clientX, ev.clientY)); }
+  document.addEventListener('pointermove', ev => {
+    if (!dg || ev.pointerId !== dg.id) return;
+    if (!dg.ghost && Math.hypot(ev.clientX - dg.x, ev.clientY - dg.y) > 6) { const L = ldState(dg.c.ctx, dg.c.ei); dg.ghost = ghostOf(dg.from === 'tray' ? dg.p : L.per[dg.i]); dg.el.style.opacity = '.3'; }
+    if (dg.ghost) { dg.ghost.style.transform = `translate(${ev.clientX - 20}px, ${ev.clientY - 30}px)`; const o = over(dg.bar, ev.clientX, ev.clientY); dg.bar.classList.toggle(dg.from === 'tray' ? 'hot' : 'off', dg.from === 'tray' ? o : !o); }
   });
   const end = ev => {
-    if (!drag || ev.pointerId !== drag.id) return; const dg = drag; drag = null; barEl.classList.remove('hot'); dg.b.classList.remove('lifting');
-    if (dg.ghost) { dg.ghost.remove(); if (ev.type === 'pointerup' && overBar(ev.clientX, ev.clientY)) add(dg.p); }
-    else if (ev.type === 'pointerup') add(dg.p);
+    if (!dg || ev.pointerId !== dg.id) return; const d = dg; dg = null; d.bar.classList.remove('hot', 'off'); d.el.style.opacity = '';
+    const L = ldState(d.c.ctx, d.c.ei); if (!L) { if (d.ghost) d.ghost.remove(); return; }
+    const up = ev.type === 'pointerup', o = over(d.bar, ev.clientX, ev.clientY);
+    if (d.ghost) d.ghost.remove();
+    if (d.from === 'tray' && up && (!d.ghost || o)) { L.per.push(d.p); ldApply(d.c.ctx, d.c.ei, d.p); }
+    else if (d.from === 'bar' && up && (!d.ghost || !o)) { L.per.splice(d.i, 1); ldApply(d.c.ctx, d.c.ei); }
   };
-  tray.addEventListener('pointerup', end); tray.addEventListener('pointercancel', end);
-  $('#ld-base', d.el).addEventListener('input', ev => { const v = parseFloat(String(ev.target.value).replace(',', '.')); base = v >= 0 ? v : 0; draw(); });
-  d.el.addEventListener('click', ev => {
-    const o = ev.target.closest('[data-once]'); if (o) { once = o.dataset.once === '1'; $$('[data-once]', d.el).forEach(b => b.setAttribute('aria-pressed', String(b === o))); draw(); return; }
-    const sc = ev.target.closest('[data-scope]'); if (sc) { scope = sc.dataset.scope; $$('[data-scope]', d.el).forEach(b => b.setAttribute('aria-pressed', String(b === sc))); return; }
-    const x = ev.target.closest('[data-x]'); if (!x) return;
-    if (x.dataset.x === 'clear') { per = []; draw(); return; }
-    if (x.dataset.x === '0') return d.close();
-    const kg = fromDispW(total());
-    const targets = scope === 'one' ? [e.sets[si]] : e.sets.filter((s, i) => i >= si && !s.done);
-    targets.forEach(s => { s.w = kg; });
-    S.settings.loader = { ...(S.settings.loader || {}), [ex.id]: { base, once, unit } }; commit('settings');
-    touch(ctx); d.close(); rerenderCard(ctx, ei); toast(targets.length > 1 ? `${fmtWU(kg)} on ${targets.length} sets` : `Set ${si + 1}: ${fmtWU(kg)}`);
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+  document.addEventListener('change', async ev => {
+    const t = ev.target; if (!t.matches('select[data-ld]')) return; const c = ctxInfo(t); const L = ldState(c.ctx, c.ei); if (!L) return; const e = draftOf(c.ctx).exercises[c.ei];
+    if (t.dataset.ld === 'si') { L.si = t.value === 'left' ? 'left' : +t.value; if (L.si !== 'left') { L.from = L.si; ldFromWeight(L, e.sets[L.si].w, ldPlates()); rerenderCard(c.ctx, c.ei); } else { L.from = Math.max(0, e.sets.findIndex(s => !s.done)); ldApply(c.ctx, c.ei); } return; }
+    if (t.dataset.ld === 'once') { L.once = t.value === '1'; ldApply(c.ctx, c.ei); return; }
+    if (t.dataset.ld === 'base') {
+      if (t.value === 'custom') { const n = await promptDialog('Bar or machine weight', `Weight before plates (${U()})`, fmtNum(L.base, 2), 'Save'); const x = parseFloat(String(n == null ? '' : n).replace(',', '.')); if (n != null && x >= 0) L.base = x; ldApply(c.ctx, c.ei); return; }
+      L.base = Number(t.value); ldApply(c.ctx, c.ei);
+    }
   });
-}
+})();
 function open1RM() {
   const unit = U();
   const d = openDialog(`<div class="dlg-title">1RM calculator</div><div class="grid2"><div class="field"><label class="lbl" for="rm-w">Weight lifted (${unit})</label><input class="txt" id="rm-w" inputmode="decimal" value="${unit === 'lb' ? 185 : 85}" autocomplete="off"></div><div class="field"><label class="lbl" for="rm-r">Reps</label><input class="txt" id="rm-r" inputmode="numeric" value="5" autocomplete="off"></div></div><div id="rm-out"></div><button class="btn ghost block" data-x="0">Close</button>`);
@@ -3655,7 +3667,8 @@ const ACT = {
   'rest-skip': () => { if (S.active) { S.active.rest = null; commit('active'); renderRestUI(); } },
   'add-ex': (el, c) => addExercises(c.ctx),
   'ex-menu': (el, c) => exMenu(c.ctx, c.ei),
-  'ex-plates': (el, c) => openLoader(c.ctx, c.ei),
+  'ex-plates': (el, c) => toggleLoader(c.ctx, c.ei),
+  'ld-clear': (el, c) => { const L = ldState(c.ctx, c.ei); if (L) { L.per = []; ldApply(c.ctx, c.ei); } },
   'ex-rest': (el, c) => exRest(c.ctx, c.ei),
   'ex-detail': el => openExDetail(el.dataset.exid),
   'set-type': (el, c) => setTypeMenu(c.ctx, c.ei, c.si),
@@ -3796,6 +3809,7 @@ document.addEventListener('input', ev => {
   if (t.matches('.cell[data-f]')) {
     const c = ctxInfo(t); const w = draftOf(c.ctx); if (!w || c.ei == null) return; const e = w.exercises[c.ei]; const s = e && e.sets[c.si]; if (!s) return;
     s[t.dataset.f] = parseField(t.dataset.f, t.value, typeOf(e.exId)); touch(c.ctx);
+    if (t.dataset.f === 'w') { const L = ldState(c.ctx, c.ei); if (L && (L.si === c.si || (L.si === 'left' && c.si >= L.from && !s.done))) { ldFromWeight(L, s.w, ldPlates()); ldRefreshPanel(c.ctx, c.ei); } }
   } else if (t.matches('[data-meta]')) {
     const c = ctxInfo(t); const w = draftOf(c.ctx); if (!w) return; w[t.dataset.meta] = t.value; touch(c.ctx);
     if (c.ctx === 'active' && t.dataset.meta === 'name') renderMinibar();
