@@ -71,8 +71,10 @@ html[data-accent="yellow"] { --acc-l: #8A6500; --acc-d: #F2C230; --acc-ink-l: #F
 html[data-accent="green"]  { --acc-l: #157444; --acc-d: #45CF86; --acc-ink-l: #FFFFFF; --acc-ink-d: #06200F; }
 /* macro colors: one hue per nutrient so the rings read at a glance (validated for color-blind separation in ring order) */
 html { --m-cal: light-dark(#2A78D6, #3987E5); --m-p: light-dark(#EB6834, #D95926); --m-c: light-dark(#1BAF7A, #199E70); --m-f: light-dark(#EDA100, #C98500); }
-html:root .rings .ring { stroke-opacity: 1; }
-html:root .rl i { opacity: 1 !important; }
+/* black and white: a color per macro. With an accent color, the rings use shades of that color. */
+html[data-accent="chalk"] .rings .ring { stroke-opacity: 1; }
+html[data-accent="chalk"] .rl i { opacity: 1 !important; }
+html:not([data-accent="chalk"]) { --m-cal: var(--accent); --m-p: var(--accent); --m-c: var(--accent); --m-f: var(--accent); }
 /* black and white: simple color by section (workout blue, food orange, weight green, goals violet) */
 html[data-accent="chalk"] { --c-work: light-dark(#2A78D6, #3987E5); --c-food: light-dark(#EB6834, #D95926); --c-weight: light-dark(#1BAF7A, #199E70); --c-goal: light-dark(#6250D6, #9085E9); --c-water: light-dark(#2A78D6, #3987E5); }
 html[data-accent="chalk"] :is(#view[data-tab="workout"], .dc-work) { --accent: var(--c-work); }
@@ -1643,7 +1645,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 27</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 28</p>`;
 }
 
 // =====================================================================
