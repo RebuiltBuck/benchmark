@@ -152,6 +152,7 @@ p { margin: 0; }
 .chip .ic { width: 1rem; height: 1rem; }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
 .chips::-webkit-scrollbar { display: none; }
+.chips.wrap { flex-wrap: wrap; overflow: visible; }
 .pr { display: inline-flex; align-items: center; gap: 4px; color: var(--warn); font-weight: 700; }
 .pr .ic { width: 1rem; height: 1rem; }
 .banner { display: flex; align-items: center; gap: 12px; justify-content: space-between; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); font-size: .875rem; }
@@ -213,7 +214,13 @@ select.txt { appearance: none; background-image: linear-gradient(45deg, transpar
 .tile .l { color: var(--muted); font-size: .875rem; }
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
 .mbars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 8px 10px; align-items: center; font-size: .875rem; }
-.mbars .track { height: 10px; }
+.mbars .track { height: 10px; display: flex; gap: 2px; }
+.mbars .fillbar.sec { opacity: .38; border-radius: 0 4px 4px 0; animation-delay: .12s; }
+.mbars .fillbar:has(+ .fillbar.sec) { border-radius: 0; }
+.mb-key { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+.mb-key span { display: inline-flex; align-items: center; gap: 6px; }
+.mb-key i { width: 14px; height: 8px; border-radius: 2px; background: var(--accent); display: inline-block; }
+.mb-key i.sec { opacity: .38; }
 .mbars .fillbar { height: 10px; border-radius: 0 4px 4px 0; background: var(--accent); min-width: 2px; }
 .mbars .val { font-family: var(--font-display); font-weight: 600; color: var(--muted); }
 .exrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); text-align: left; width: 100%; }
@@ -563,7 +570,9 @@ button.card:active, .pick-item:active, .exrow:active { transform: scale(.985); }
 .setrow.flash { animation: flash .7s var(--ease); }
 .swipewrap { position: relative; border-radius: 10px; }
 .swipewrap.swiping { overflow: hidden; }
-.swipewrap > .setrow { position: relative; touch-action: pan-y; }
+.swipewrap > .setrow, .swipewrap > .exrow { position: relative; touch-action: pan-y; }
+.swipewrap > .exrow { border-top: 0; background: transparent; }
+.swipewrap + .swipewrap > .exrow { border-top: 1px solid var(--line); }
 .swipe-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 0; border-radius: 10px; background: color-mix(in srgb, var(--bad) 55%, transparent); display: flex; align-items: center; justify-content: center; overflow: hidden; color: #fff; transition: background .15s; }
 .swipe-bg.arm { background: var(--bad); }
 .swipe-bg svg { width: 20px; height: 20px; flex: none; }
@@ -1553,8 +1562,8 @@ function viewProgress() {
   const all = workoutsSorted(); const now = Date.now();
   let h = demoBanner();
   const since = now - 30 * DAY; const mc = muscleSetCounts(since);
-  const ms = Object.entries(mc).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]); const mx = ms.length ? ms[0][1] : 1;
-  h += `<div class="card dc-work"><div class="card-head"><h2 class="h3">Working sets by muscle</h2><span class="muted small">Last 30 days</span></div>${ms.length ? `<div class="mbars">${ms.map(([m, n]) => `<span>${esc(m)}</span><div class="track"><div class="fillbar" style="width:${n / mx * 100}%"></div></div><span class="val">${n}</span>`).join('')}</div>` : `<p class="empty">Log a workout to see which muscles you're training most.</p>`}</div>`;
+  const ms = Object.entries(mc).filter(x => x[0][0] !== '_' && x[1] > 0).sort((a, b) => b[1] - a[1]); const mx = ms.length ? ms[0][1] : 1;
+  h += `<div class="card dc-work"><div class="card-head"><h2 class="h3">Working sets by muscle</h2><span class="muted small">Last 30 days</span></div>${ms.length ? `<div class="mbars">${ms.map(([m, n]) => { const d = mc._dir[m] || 0; return `<span>${esc(m)}</span><div class="track" title="${d} direct + ${mc._ind[m] || 0} secondary"><div class="fillbar" style="width:${d / mx * 100}%"></div><div class="fillbar sec" style="width:${(n - d) / mx * 100}%"></div></div><span class="val">${fmtNum(n, 1)}</span>`; }).join('')}</div><div class="mb-key muted small"><span><i></i> Direct sets</span><span><i class="sec"></i> Secondary, counted as half</span></div>` : `<p class="empty">Log a workout to see which muscles you're training most.</p>`}</div>`;
   h += muscleMapCard();
   if (!all.length) h += `<div class="card"><p class="empty">This fills in as you log.</p><div style="margin-top:10px"><button class="btn ghost sm" data-act="demo-load">Load demo data</button></div></div>`;
   return h;
@@ -1621,7 +1630,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 25</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 26</p>`;
 }
 
 // =====================================================================
@@ -1948,6 +1957,11 @@ async function exRest(ctx, ei) {
   const v = await actionSheet('Rest after each set', REST_OPTS.map(s => ({ v: String(s), label: s ? fmtTime(s) : 'Off', sel: s === cur })), { grid: true, sub: getEx(e.exId).name });
   if (v == null) return; e.rest = parseInt(v, 10); touch(ctx); rerenderCard(ctx, ei);
 }
+function removeFoodEntry(day, id) {
+  const m = S.meals[day]; if (!m) return; const i = m.entries.findIndex(e => e.id === id); if (i < 0) return; const old = m.entries[i];
+  m.entries.splice(i, 1); commitDay(day); renderView();
+  undoToast(`Removed ${old.name}`, () => { m.entries.splice(Math.min(i, m.entries.length), 0, old); commitDay(day); renderView(); });
+}
 function removeSet(ctx, ei, si) {
   const e = draftOf(ctx).exercises[ei]; if (!e || !e.sets[si]) return;
   const removed = e.sets.splice(si, 1)[0]; touch(ctx); rerenderCard(ctx, ei);
@@ -1957,7 +1971,7 @@ function removeSet(ctx, ei, si) {
 (() => {
   let sw = null, eatClick = false;
   document.addEventListener('pointerdown', ev => {
-    if (ev.button > 0) return; const row = ev.target.closest('.swipewrap > .setrow'); if (!row) return;
+    if (ev.button > 0) return; const row = ev.target.closest('.swipewrap > .setrow, .swipewrap > .exrow'); if (!row) return;
     sw = { row, wrap: row.parentElement, x: ev.clientX, y: ev.clientY, dx: 0, on: false, id: ev.pointerId };
   }, { passive: true });
   document.addEventListener('pointermove', ev => {
@@ -1978,7 +1992,8 @@ function removeSet(ctx, ei, si) {
     const w = s.wrap.offsetWidth, bg = s.wrap.firstElementChild;
     if (ev.type === 'pointerup' && -s.dx > Math.min(110, w * 0.32)) {
       s.row.style.transition = 'transform .18s ease-out'; s.row.style.transform = `translateX(${-w}px)`; bg.style.transition = 'width .18s ease-out'; bg.style.width = w + 'px';
-      const c = ctxInfo(s.row); setTimeout(() => removeSet(c.ctx, c.ei, c.si), 170);
+      if (s.row.matches('.exrow[data-act="food-edit"]')) { const id = s.row.dataset.id; setTimeout(() => removeFoodEntry(UI.foodDay, id), 170); }
+      else { const c = ctxInfo(s.row); setTimeout(() => removeSet(c.ctx, c.ei, c.si), 170); }
     } else {
       s.row.style.transition = 'transform .22s var(--ease)'; s.row.style.transform = ''; bg.style.transition = 'width .22s var(--ease)'; bg.style.width = '0px';
       setTimeout(() => { s.wrap.classList.remove('swiping'); s.row.style.transition = ''; bg.style.transition = ''; bg.classList.remove('arm'); }, 240);
@@ -2170,10 +2185,15 @@ function exerciseForm(existing, presetName = '') {
       <div class="field"><label class="lbl" for="xf-name">Name</label><input class="txt" id="xf-name" value="${esc(e.name)}" placeholder="For example, Landmine Press" autocomplete="off"></div>
       <div class="grid2"><div class="field"><label class="lbl" for="xf-m">Muscle group</label><select class="txt" id="xf-m">${MUSCLES.map(m => `<option ${m === e.muscle ? 'selected' : ''}>${m}</option>`).join('')}</select></div>
       <div class="field"><label class="lbl" for="xf-e">Equipment</label><select class="txt" id="xf-e">${EQUIP.map(m => `<option ${m === e.equip ? 'selected' : ''}>${m}</option>`).join('')}</select></div></div>
+      <div class="field"><span class="lbl">Secondary muscles <span style="font-weight:400">(optional, count as half a set)</span></span><div class="chips wrap" id="xf-sec"></div></div>
       <div class="field"><span class="lbl">What you track</span><div class="type-list">${Object.entries(TYPES).map(([k, t]) => `<button class="type-opt" data-type="${k}" aria-pressed="${k === type}"><b>${t.label}</b><span class="muted small">${t.hint}</span></button>`).join('')}</div></div>
       <div class="field"><label class="lbl" for="xf-r">Rest timer</label><select class="txt" id="xf-r"><option value="">Use my default (${S.settings.rest ? fmtTime(S.settings.rest) : 'off'})</option>${REST_OPTS.map(x => `<option value="${x}" ${e.rest === x ? 'selected' : ''}>${x ? fmtTime(x) : 'Off'}</option>`).join('')}</select></div>
       ${existing ? `<button class="btn danger-text" data-x="del">Remove from library</button>` : ''}
       <div class="foot-row"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn primary" data-x="save">Save</button></div>`, { onClose: () => res(null) });
+    let sec = existing && Array.isArray(existing.sec) ? [...existing.sec] : null;
+    const drawSec = () => { const nm = $('#xf-name', d.el).value, mu = $('#xf-m', d.el).value; const cur = sec || secGuess(nm, mu); $('#xf-sec', d.el).innerHTML = MAP_MUSCLES.filter(m => m !== mu).map(m => `<button class="chip ${cur.includes(m) ? 'on' : ''}" data-sec="${m}" aria-pressed="${cur.includes(m)}">${m}</button>`).join(''); };
+    drawSec(); $('#xf-name', d.el).addEventListener('input', () => { if (!sec) setTimeout(drawSec); }); $('#xf-m', d.el).addEventListener('change', () => { if (sec) sec = sec.filter(m => m !== $('#xf-m', d.el).value); drawSec(); });
+    $('#xf-sec', d.el).addEventListener('click', ev => { const b = ev.target.closest('[data-sec]'); if (!b) return; const nm = $('#xf-name', d.el).value, mu = $('#xf-m', d.el).value; const cur = sec || secGuess(nm, mu); const m = b.dataset.sec; sec = cur.includes(m) ? cur.filter(x => x !== m) : [...cur, m]; drawSec(); });
     if (!existing) { let tm = false, te = false; $('#xf-m', d.el).addEventListener('change', () => { tm = true; }); $('#xf-e', d.el).addEventListener('change', () => { te = true; });
       $('#xf-name', d.el).addEventListener('input', ev => { const v = ev.target.value; const m = guessFrom(MUSCLE_GUESS, v), q = guessFrom(EQUIP_GUESS, v); if (m && !tm) $('#xf-m', d.el).value = m; if (q && !te) $('#xf-e', d.el).value = q; }); }
     d.el.addEventListener('click', ev => {
@@ -2185,7 +2205,7 @@ function exerciseForm(existing, presetName = '') {
       const name = $('#xf-name', d.el).value.trim();
       if (!name) { toast('Give the exercise a name'); $('#xf-name', d.el).focus(); return; }
       const rv = $('#xf-r', d.el).value;
-      const obj = { id: existing ? existing.id : 'c-' + uid(), name, muscle: $('#xf-m', d.el).value, equip: $('#xf-e', d.el).value, type, rest: rv === '' ? null : parseInt(rv, 10) };
+      const obj = { id: existing ? existing.id : 'c-' + uid(), name, muscle: $('#xf-m', d.el).value, equip: $('#xf-e', d.el).value, type, rest: rv === '' ? null : parseInt(rv, 10), ...(sec ? { sec } : {}) };
       const i = S.library.findIndex(l => l.id === obj.id);
       if (i >= 0) S.library[i] = obj; else S.library.push(obj);
       commit('library'); rebuildEx(); res(obj); d.close(); renderAll();
@@ -2692,7 +2712,7 @@ function viewFood() {
   h += waterCard(day);
   for (const [m, label] of MEALS) {
     const me = ents.filter(e => e.meal === m); const mc = me.reduce((s, e) => s + (e.cal || 0) * (e.qty || 1), 0);
-    h += `<div class="card"><div class="card-head"><h2 class="h3">${label}</h2><span class="meal-tools"><span class="muted">${me.length ? fmtBig(mc) + ' cal' : ''}</span>${me.length ? `<button class="icon-btn sm" data-act="meal-menu" data-meal="${m}" aria-label="${label} options">${ic('dots')}</button>` : ''}</span></div>${me.map(e => `<button class="exrow" data-act="food-edit" data-id="${e.id}"><div style="min-width:0"><div style="font-weight:700">${esc(e.name)}</div><div class="muted small">${esc(qtyLabel(e))}${e.p != null ? ` · ${fmtNum(e.p * (e.qty || 1), 1)} g protein` : ''}</div></div><div class="r"><b>${fmtBig((e.cal || 0) * (e.qty || 1))}</b> <span class="muted small">cal</span></div></button>`).join('')}<button class="btn ghost block" data-act="food-add" data-meal="${m}" style="margin-top:6px">${ic('plus')} Add to ${label.toLowerCase()}</button></div>`;
+    h += `<div class="card"><div class="card-head"><h2 class="h3">${label}</h2><span class="meal-tools"><span class="muted">${me.length ? fmtBig(mc) + ' cal' : ''}</span>${me.length ? `<button class="icon-btn sm" data-act="meal-menu" data-meal="${m}" aria-label="${label} options">${ic('dots')}</button>` : ''}</span></div>${me.map(e => `<div class="swipewrap"><div class="swipe-bg" aria-hidden="true">${ic('trash')}</div><button class="exrow" data-act="food-edit" data-id="${e.id}"><div style="min-width:0"><div style="font-weight:700">${esc(e.name)}</div><div class="muted small">${esc(qtyLabel(e))}${e.p != null ? ` · ${fmtNum(e.p * (e.qty || 1), 1)} g protein` : ''}</div></div><div class="r"><b>${fmtBig((e.cal || 0) * (e.qty || 1))}</b> <span class="muted small">cal</span></div></button></div>`).join('')}<button class="btn ghost block" data-act="food-add" data-meal="${m}" style="margin-top:6px">${ic('plus')} Add to ${label.toLowerCase()}</button></div>`;
   }
   const pts = []; let sum = 0, n = 0;
   for (let i = 6; i >= 0; i--) { const d = shiftDay(dayKey(Date.now()), -i); const t = sumN(dayEntries(d)); if (t.cal > 0) { sum += t.cal; n++; } pts.push({ label: new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short' }), y: Math.round(t.cal), cur: i === 0, tip: `<b>${fmtBig(t.cal)} cal</b> · ${fmtNum(t.p, 0)} g protein<br>${esc(dayLabel(d))}` }); }
@@ -3057,16 +3077,34 @@ function recordsCard() {
   return `<div class="card"><div class="card-head"><h2 class="h3">Personal records</h2><span class="muted small">Best ever</span></div>${(UI.recAll ? list : list.slice(0, 6)).map(r => `<button class="exrow" data-act="ex-detail" data-exid="${r.id}"><div style="min-width:0"><div>${esc(getEx(r.id).name)}</div><div class="muted small">${PR_KINDS[r.k].label} · ${fmtShort(r.when)}</div></div><div class="r"><b class="pr-val">${PR_KINDS[r.k].fmt(r.v, r.t)}</b></div></button>`).join('')}${list.length > 6 && !UI.recAll ? `<button class="link" data-act="rec-all">Show all ${list.length}</button>` : ''}</div>`;
 }
 const MAP_MUSCLES = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Core', 'Quads', 'Hamstrings', 'Glutes', 'Calves'];
+// Secondary muscles: each counts as half a set. Built-in exercises get them from these rules; your own exercises can set them.
+const SEC_RULES = [
+  [/sled/i, ['Quads', 'Glutes', 'Calves']], [/swing/i, ['Glutes', 'Hamstrings', 'Core']], [/power clean/i, ['Hamstrings', 'Glutes', 'Back', 'Shoulders']],
+  [/clean and jerk/i, ['Quads', 'Glutes', 'Shoulders']], [/snatch/i, ['Quads', 'Glutes', 'Shoulders', 'Back']], [/thruster/i, ['Quads', 'Shoulders', 'Glutes']], [/burpee/i, ['Chest', 'Quads', 'Core']],
+  [/sumo/i, ['Quads', 'Hamstrings', 'Back']], [/romanian|\brdl\b|good morning|stiff/i, ['Glutes', 'Back']], [/deadlift|rack pull/i, ['Hamstrings', 'Glutes', 'Forearms']],
+  [/back ext/i, ['Glutes', 'Hamstrings']], [/hip thrust|glute bridge|kickback/i, ['Hamstrings'], 'Glutes'],
+  [/front squat|goblet/i, ['Glutes', 'Core']], [/squat|leg press|lunge|step-?up|split|hack|pendulum/i, ['Glutes', 'Hamstrings']],
+  [/close-?grip/i, ['Chest', 'Shoulders']], [/\bdips?\b/i, ['Triceps', 'Shoulders', 'Chest']], [/fly|flye|crossover|pec deck/i, ['Shoulders'], 'Chest'],
+  [/bench|chest press|push-?up|floor press/i, ['Triceps', 'Shoulders']],
+  [/rear delt|face pull|reverse pec|upright/i, ['Back']], [/press/i, ['Triceps'], 'Shoulders'],
+  [/straight-arm/i, []], [/pull-?up|\bchin|pulldown/i, ['Biceps']], [/\brows?\b/i, ['Biceps', 'Shoulders'], 'Back'], [/shrug/i, ['Forearms']],
+  [/curl/i, ['Forearms'], 'Biceps'], [/farmer/i, ['Core', 'Back']], [/hanging/i, ['Forearms']],
+];
+function secGuess(name, muscle) { for (const [rx, list, only] of SEC_RULES) { if (only && only !== muscle) continue; if (rx.test(name)) return list.filter(m => m !== muscle); } return []; }
+function secOf(ex) { return Array.isArray(ex.sec) ? ex.sec : secGuess(ex.name || '', ex.muscle); }
 function muscleSetCounts(since) {
-  const mc = {}; const add = w => { for (const e of w.exercises) { const m = getEx(e.exId).muscle; mc[m] = (mc[m] || 0) + working(e.sets).length; } };
+  const mc = {}, dir = {}, ind = {};
+  const add = w => { for (const e of w.exercises) { const ex = getEx(e.exId); const n = working(e.sets).length; if (!n) continue;
+    dir[ex.muscle] = (dir[ex.muscle] || 0) + n; mc[ex.muscle] = (mc[ex.muscle] || 0) + n;
+    for (const m of secOf(ex)) { ind[m] = (ind[m] || 0) + n; mc[m] = (mc[m] || 0) + n / 2; } } };
   for (const w of workoutsSorted()) { if (w.start < since) break; add(w); }
   if (S.active && S.active.start >= since) add(S.active);
-  return mc;
+  mc._dir = dir; mc._ind = ind; return mc;
 }
 function muscleMapCard() {
   const ws = startOfWeek(Date.now()); const mc = muscleSetCounts(ws);
   const f = m => { const n = mc[m] || 0; return n ? `fill="var(--accent)" fill-opacity="${(0.28 + 0.72 * Math.min(1, n / 12)).toFixed(2)}"` : 'fill="var(--surface-2)"'; };
-  const t = m => `<title>${m}: ${mc[m] || 0} set${mc[m] === 1 ? '' : 's'}</title>`;
+  const t = m => `<title>${m}: ${mc._dir[m] || 0} direct set${mc._dir[m] === 1 ? '' : 's'}${mc._ind[m] ? ` + ${mc._ind[m]} secondary` : ''}</title>`;
   const R = (m, x, y, w, h, rx) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" ${f(m)}>${t(m)}</rect>`;
   const E = (m, cx, cy, rx, ry) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" ${f(m)}>${t(m)}</ellipse>`;
   const N = (x, y, w, h, rx) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="var(--surface-2)" opacity=".55"/>`;
@@ -3076,7 +3114,7 @@ function muscleMapCard() {
   const trained = MAP_MUSCLES.filter(m => mc[m]).sort((a, b) => mc[b] - mc[a]); const missed = MAP_MUSCLES.filter(m => !mc[m]);
   return `<div class="card dc-work"><div class="card-head"><h2 class="h3">Muscles this week</h2><span class="muted small">Darker = more sets</span></div>
     <svg class="body-map" viewBox="0 0 230 200" role="img" aria-label="Body map of muscles trained this week">${front}${back}<text x="60" y="197" text-anchor="middle">Front</text><text x="170" y="197" text-anchor="middle">Back</text></svg>
-    <div class="map-notes">${trained.length ? `<div><span class="muted">Most:</span> <b>${esc(trained[0])}</b> <span class="muted">(${mc[trained[0]]} sets)</span></div>` : ''}${missed.length && trained.length ? `<div><span class="muted">Not yet:</span> ${esc(missed.join(', '))}</div>` : ''}${!trained.length ? '<div class="muted">Finish a workout this week to light this up.</div>' : ''}</div></div>`;
+    <div class="map-notes">${trained.length ? `<div><span class="muted">Most:</span> <b>${esc(trained[0])}</b> <span class="muted">(${fmtNum(mc[trained[0]], 1)} sets)</span></div>` : ''}${missed.length && trained.length ? `<div><span class="muted">Not yet:</span> ${esc(missed.join(', '))}</div>` : ''}${!trained.length ? '<div class="muted">Finish a workout this week to light this up.</div>' : ''}</div></div>`;
 }
 
 // ---------- weekly schedule ----------
