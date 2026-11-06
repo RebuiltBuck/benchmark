@@ -349,6 +349,19 @@ button.row { width: 100%; text-align: left; }
 .type-opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .type-opt b { font-weight: 600; }
 .plate-svg { width: 100%; height: auto; display: block; }
+.ld-total { text-align: center; font-size: 2.3rem; font-weight: 800; line-height: 1.1; margin: 6px 0 4px; }
+.ld-total .muted.small { font-size: .85rem; font-weight: 400; margin-top: 2px; }
+.ld-bar { border-radius: 14px; padding: 4px; transition: background .15s, box-shadow .15s; }
+.ld-bar.hot { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+.ld-svg { width: 100%; height: auto; display: block; }
+.ld-on { cursor: pointer; }
+.ld-on.pop { animation: ldpop .24s var(--ease); }
+@keyframes ldpop { from { transform: translateX(46px); opacity: 0; } }
+.ld-tray { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 8px; min-height: 76px; }
+.ld-plate { display: grid; place-items: center; padding: 0; width: 40px; height: var(--ph); border-radius: 8px; background: var(--pc); font-weight: 800; font-size: .85rem; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .22), 0 2px 6px rgb(0 0 0 / .22); touch-action: none; user-select: none; -webkit-user-select: none; transition: opacity .12s; }
+.ld-plate.lifting { opacity: .35; }
+.ld-ghost { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; box-shadow: 0 12px 26px rgb(0 0 0 / .35); }
+.ld-dlg .foot-row { flex-wrap: wrap; }
 .plate-out { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; }
 .pct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; font-size: .9375rem; }
 .pct div { padding: 7px 4px; border-top: 1px solid var(--line); }
@@ -678,6 +691,7 @@ const ICON = {
   drop: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
   share: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  plates: '<path d="M2 12h20"/><rect x="5" y="5" width="3" height="14" rx="1"/><rect x="9" y="7" width="2.5" height="10" rx="1"/><rect x="16" y="5" width="3" height="14" rx="1"/><rect x="12.5" y="7" width="2.5" height="10" rx="1"/>',
   dots: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   down: '<path d="M6 9l6 6 6-6"/>',
   left: '<path d="M15 6l-6 6 6 6"/>',
@@ -847,7 +861,7 @@ function starterToRoutine(st) {
 const DEFAULT_SETTINGS = {
   unit: 'lb', distUnit: 'mi', rest: 90, restAuto: true, restSound: true, restVibrate: true,
   showRPE: false, showPrev: true, defaultSets: 3, weeklyGoal: 3, e1rm: 'epley', weekStart: 1,
-  theme: 'system', accent: 'chalk', tint: false, size: 'm', barLb: 45, barKg: 20,
+  theme: 'system', accent: 'chalk', tint: false, plateLoader: true, size: 'm', barLb: 45, barKg: 20,
   platesLb: [45, 35, 25, 10, 5, 2.5], platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
   nutriShow: ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na'], nutriGoals: {}, themeV: 5, schedule: {}, progression: true, waterGoal: 8, onboarded: false, goal: '',
 };
@@ -1574,6 +1588,7 @@ function viewMore() {
   <h2 class="sec">Tools</h2>
   <div class="card list">
     <button class="row" data-act="open-library"><div class="row-l">Exercise library<div class="small muted">${allEx().length} exercises · add your own</div></div>${ic('right', 'chev')}</button>
+    ${rowToggle('Plate loader', 'plateLoader', 'Load plates on a bar to set the weight')}
     <button class="row" data-act="tool-plates"><div class="row-l">Plate calculator</div>${ic('right', 'chev')}</button>
     <button class="row" data-act="tool-1rm"><div class="row-l">1RM calculator</div>${ic('right', 'chev')}</button>
     <button class="row" data-act="setup-open"><div class="row-l">Run setup again</div>${ic('right', 'chev')}</button>
@@ -1587,7 +1602,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 21</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 22</p>`;
 }
 
 // =====================================================================
@@ -1730,7 +1745,7 @@ function cardHTML(ctx, ei) {
   }).join('');
   const rest = restFor(e); const ssg = ssGroups(w)[ei];
   return `<section class="card excard${ssg ? ' in-ss' : ''}" data-ei="${ei}">${ssg ? `<div class="ss-tag">${ic('link')} Superset ${ssg.letter}</div>` : ''}
-    <div class="ex-head"><button class="exname" data-act="ex-detail" data-exid="${e.exId}">${esc(ex.name)}</button><button class="icon-btn" data-act="ex-menu" aria-label="Options for ${esc(ex.name)}">${ic('dots')}</button></div>
+    <div class="ex-head"><button class="exname" data-act="ex-detail" data-exid="${e.exId}">${esc(ex.name)}</button>${loaderOK(ex) ? `<button class="icon-btn" data-act="ex-plates" aria-label="Load plates for ${esc(ex.name)}">${ic('plates')}</button>` : ''}<button class="icon-btn" data-act="ex-menu" aria-label="Options for ${esc(ex.name)}">${ic('dots')}</button></div>
     <div class="ex-meta"><button class="chip" data-act="ex-rest">${ic('timer')} Rest ${rest ? fmtTime(rest) : 'off'}</button><span class="muted small">${esc(ex.muscle)} · ${esc(ex.equip)}</span></div>
     ${ctx === 'active' ? suggestHTML(e, prev) : ''}
     ${e.note != null && live ? `<textarea class="txt exnote" data-note rows="1" placeholder="Note for this exercise">${esc(e.note)}</textarea>` : ''}
@@ -2267,6 +2282,94 @@ function openPlates(initKg) {
   };
   d.el.addEventListener('input', upd); d.el.addEventListener('click', e => { if (e.target.closest('[data-x]')) d.close(); });
   upd();
+}
+// ---------- Plate loader: build the weight by loading plates ----------
+const LOADER_RX = /sled|smith|leg press|hack|landmine|t-bar|prowler|belt squat|pendulum|plate[- ]loaded/i;
+const ONCE_RX = /sled|landmine|t-bar|prowler/i;
+function loaderOK(ex) {
+  if (!S.settings.plateLoader || !ex || !WEIGHT_TYPES.has(ex.type || 'wr')) return false;
+  return ex.equip === 'Barbell' || ex.equip === 'Machine' || LOADER_RX.test(ex.name);
+}
+function loaderPrefs(ex) {
+  const saved = (S.settings.loader || {})[ex.id]; const unit = U();
+  if (saved && saved.unit === unit) return { base: saved.base, once: !!saved.once };
+  return { base: ex.equip === 'Barbell' ? (unit === 'lb' ? S.settings.barLb : S.settings.barKg) : 0, once: ONCE_RX.test(ex.name) };
+}
+function loaderSVG(per, unit, once) {
+  const st = PLATE_STYLE[unit]; const H = 150, cy = 75; let x = 64; let plates = '';
+  per.forEach((p, i) => { const [col, hPct, w0] = st[p] || ['#888', 50, 6]; const w = w0 * 1.15, h = 128 * hPct / 100;
+    plates += `<g class="ld-on" data-i="${i}" style="--d:${i * 25}ms"><rect x="${x}" y="${cy - h / 2}" width="${w}" height="${h}" rx="3" fill="${col}" stroke="rgb(0 0 0 / .28)" stroke-width="1"/><rect x="${x - 1}" y="${cy - h / 2 - 4}" width="${w + 2}" height="${h + 8}" fill="transparent"/></g>`; x += w + 2; });
+  const end = Math.max(x + 16, 300);
+  const sleeve = `<rect x="0" y="${cy - 7}" width="64" height="14" rx="2" fill="var(--muted)" opacity=".5"/><rect x="50" y="${cy - 18}" width="14" height="36" rx="2" fill="var(--muted)"/><rect x="64" y="${cy - 10}" width="${end - 64}" height="20" rx="3" fill="var(--muted)" opacity=".8"/>`;
+  return `<svg class="ld-svg" viewBox="0 0 ${end + 6} ${H}" role="img" aria-label="${once ? 'Loaded' : 'Each side'}: ${per.length ? per.join(', ') + ' ' + unit : 'no plates'}">${sleeve}${plates}</svg>`;
+}
+function plateChip(p, unit) {
+  const [col, hPct] = PLATE_STYLE[unit][p] || ['#888', 50]; const light = /#F2F2F2|#B8BCC2|#E8B511/i.test(col);
+  return `<button class="ld-plate" data-p="${p}" style="--pc:${col};--ph:${Math.max(40, hPct * 0.74)}px;color:${light ? '#111' : '#fff'}" aria-label="Add ${p} ${unit} plate">${fmtNum(p, 2)}</button>`;
+}
+function openLoader(ctx, ei) {
+  const dr = draftOf(ctx); const e = dr && dr.exercises[ei]; if (!e) return; const ex = getEx(e.exId); const unit = U();
+  const plates = [...(unit === 'lb' ? S.settings.platesLb : S.settings.platesKg)].sort((a, b) => b - a);
+  let si = e.sets.findIndex(s => !s.done); if (si < 0) si = e.sets.length - 1; if (si < 0) { e.sets.push(ctx === 'routine' ? { type: 'n', w: null, r: null, t: null, d: null } : { type: 'n', done: false }); si = 0; }
+  const pref = loaderPrefs(ex); let base = pref.base, once = pref.once, scope = 'one';
+  const cur = e.sets[si].w != null ? toDispW(e.sets[si].w) : null;
+  let per = [];
+  if (cur != null && cur > base) { const c = once ? plateCalc(base + (cur - base) * 2, base, plates) : plateCalc(cur, base, plates); per = c.per; }
+  const total = () => base + per.reduce((a, b) => a + b, 0) * (once ? 1 : 2);
+  const d = openDialog(`<div class="dlg-title">Load plates</div><p class="muted small" style="margin-top:-4px">${esc(ex.name)} · set <span id="ld-setno">${si + 1}</span></p>
+    <div class="ld-total"><span class="num" id="ld-total"></span> <span class="muted">${unit}</span><div class="muted small" id="ld-break"></div></div>
+    <div class="ld-bar" id="ld-bar"></div>
+    <p class="muted small" style="text-align:center">Drag or tap a plate to add it. Tap a plate on the bar to take it off.</p>
+    <div class="ld-tray" id="ld-tray">${plates.map(p => plateChip(p, unit)).join('')}</div>
+    <div class="field" style="margin-top:12px"><label class="lbl" for="ld-base">Bar or machine weight (${unit})</label><input class="txt" id="ld-base" inputmode="decimal" value="${fmtNum(base, 2)}" autocomplete="off"></div>
+    <div class="field"><span class="lbl">Plates count</span><div class="seg" role="group" aria-label="Plates count"><button data-once="0" aria-pressed="${!once}">Twice (both sides)</button><button data-once="1" aria-pressed="${once}">Once (sled)</button></div></div>
+    <div class="field"><span class="lbl">Use for</span><div class="seg" role="group" aria-label="Use for"><button data-scope="one" aria-pressed="true">This set</button><button data-scope="left" aria-pressed="false">All sets left</button></div></div>
+    <div class="foot-row"><button class="btn ghost" data-x="clear">Clear</button><button class="btn ghost" data-x="0">Cancel</button><button class="btn primary" data-x="1" id="ld-use">Use</button></div>`);
+  d.el.classList.add('ld-dlg');
+  const draw = (anim) => {
+    per.sort((a, b) => b - a); const t = total();
+    $('#ld-bar', d.el).innerHTML = loaderSVG(per, unit, once); if (anim != null) { const g = $(`.ld-on[data-i="${per.lastIndexOf(anim)}"]`, d.el); if (g) g.classList.add('pop'); }
+    $('#ld-total', d.el).textContent = fmtNum(t, 2);
+    const sum = per.reduce((a, b) => a + b, 0);
+    $('#ld-break', d.el).textContent = per.length ? `${fmtNum(base, 2)} ${base ? 'base' : ''} + ${once ? fmtNum(sum, 2) + ' in plates' : `2 × ${fmtNum(sum, 2)} per side`}`.replace('  ', ' ') : (base ? `Just the ${ex.equip === 'Barbell' ? 'bar' : 'machine'}` : 'Add plates');
+    $('#ld-use', d.el).textContent = `Use ${fmtNum(t, 2)} ${unit}`;
+  };
+  const add = p => { per.push(p); draw(p); };
+  draw();
+  // tap a loaded plate to remove it
+  $('#ld-bar', d.el).addEventListener('click', ev => { const g = ev.target.closest('.ld-on'); if (!g) return; per.splice(+g.dataset.i, 1); draw(); });
+  // drag (or tap) from the tray
+  let drag = null;
+  const tray = $('#ld-tray', d.el), barEl = $('#ld-bar', d.el);
+  const overBar = (x, y) => { const r = barEl.getBoundingClientRect(); return x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 30 && y <= r.bottom + 30; };
+  tray.addEventListener('pointerdown', ev => {
+    const b = ev.target.closest('.ld-plate'); if (!b) return; ev.preventDefault();
+    drag = { b, p: Number(b.dataset.p), x: ev.clientX, y: ev.clientY, ghost: null, id: ev.pointerId }; try { b.setPointerCapture(ev.pointerId); } catch (e) {}
+  });
+  tray.addEventListener('pointermove', ev => {
+    if (!drag || ev.pointerId !== drag.id) return;
+    if (!drag.ghost && Math.hypot(ev.clientX - drag.x, ev.clientY - drag.y) > 6) { const g = drag.b.cloneNode(true); g.classList.add('ld-ghost'); document.body.appendChild(g); drag.ghost = g; drag.b.classList.add('lifting'); }
+    if (drag.ghost) { drag.ghost.style.transform = `translate(${ev.clientX - 22}px, ${ev.clientY - 30}px)`; barEl.classList.toggle('hot', overBar(ev.clientX, ev.clientY)); }
+  });
+  const end = ev => {
+    if (!drag || ev.pointerId !== drag.id) return; const dg = drag; drag = null; barEl.classList.remove('hot'); dg.b.classList.remove('lifting');
+    if (dg.ghost) { dg.ghost.remove(); if (ev.type === 'pointerup' && overBar(ev.clientX, ev.clientY)) add(dg.p); }
+    else if (ev.type === 'pointerup') add(dg.p);
+  };
+  tray.addEventListener('pointerup', end); tray.addEventListener('pointercancel', end);
+  $('#ld-base', d.el).addEventListener('input', ev => { const v = parseFloat(String(ev.target.value).replace(',', '.')); base = v >= 0 ? v : 0; draw(); });
+  d.el.addEventListener('click', ev => {
+    const o = ev.target.closest('[data-once]'); if (o) { once = o.dataset.once === '1'; $$('[data-once]', d.el).forEach(b => b.setAttribute('aria-pressed', String(b === o))); draw(); return; }
+    const sc = ev.target.closest('[data-scope]'); if (sc) { scope = sc.dataset.scope; $$('[data-scope]', d.el).forEach(b => b.setAttribute('aria-pressed', String(b === sc))); return; }
+    const x = ev.target.closest('[data-x]'); if (!x) return;
+    if (x.dataset.x === 'clear') { per = []; draw(); return; }
+    if (x.dataset.x === '0') return d.close();
+    const kg = fromDispW(total());
+    const targets = scope === 'one' ? [e.sets[si]] : e.sets.filter((s, i) => i >= si && !s.done);
+    targets.forEach(s => { s.w = kg; });
+    S.settings.loader = { ...(S.settings.loader || {}), [ex.id]: { base, once, unit } }; commit('settings');
+    touch(ctx); d.close(); rerenderCard(ctx, ei); toast(targets.length > 1 ? `${fmtWU(kg)} on ${targets.length} sets` : `Set ${si + 1}: ${fmtWU(kg)}`);
+  });
 }
 function open1RM() {
   const unit = U();
@@ -3530,6 +3633,7 @@ const ACT = {
   'rest-skip': () => { if (S.active) { S.active.rest = null; commit('active'); renderRestUI(); } },
   'add-ex': (el, c) => addExercises(c.ctx),
   'ex-menu': (el, c) => exMenu(c.ctx, c.ei),
+  'ex-plates': (el, c) => openLoader(c.ctx, c.ei),
   'ex-rest': (el, c) => exRest(c.ctx, c.ei),
   'ex-detail': el => openExDetail(el.dataset.exid),
   'set-type': (el, c) => setTypeMenu(c.ctx, c.ei, c.si),
