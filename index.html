@@ -580,7 +580,7 @@ button.card:active, .pick-item:active, .exrow:active { transform: scale(.985); }
 .setrow { transition: background .35s var(--ease); }
 .setrow.done { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .check { transition: background .25s, color .25s, transform .18s var(--ease); }
-.check.on { background: var(--accent-grad); color: #fff; box-shadow: 0 6px 16px -6px var(--glow); }
+.check.on { background: var(--accent-grad); color: var(--accent-ink); box-shadow: 0 6px 16px -6px var(--glow); }
 .check.pop { animation: pop .5s var(--spring); }
 .setrow.flash { animation: flash .7s var(--ease); }
 .swipewrap { position: relative; border-radius: 10px; }
@@ -670,6 +670,7 @@ button, a, .chip, .tab { touch-action: manipulation; }
 .dlg input[type="date"], .dlg input[type="time"], .sheet-body input[type="date"], .sheet-body input[type="time"] { width: 100%; -webkit-appearance: none; appearance: none; display: block; }
 /* Black and white theme: no stray red */
 html:root[data-accent="chalk"] { --bad: var(--ink); }
+html[data-accent="chalk"] .btn.danger, html[data-accent="chalk"] .swipe-bg { color: var(--good-ink); }
 html:root[data-accent="chalk"] .btn.danger-text, html:root[data-accent="chalk"] .opt.danger { text-decoration: underline; text-underline-offset: 3px; }
 .gchips { display: flex; flex-wrap: wrap; gap: 8px; }
 .gchip { min-height: 46px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); font-weight: 700; font-size: 1rem; transition: background .2s, color .2s, transform .18s var(--ease); }
@@ -1645,7 +1646,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 29</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 30</p>`;
 }
 
 // =====================================================================
@@ -1909,7 +1910,7 @@ function toggleDone(ctx, ei, si) {
     if (inp) inp.focus();
     return;
   }
-  s.done = true; buzz(12);
+  s.done = true; buzz(12); ldAdvance(ctx, ei, si);
   touch(ctx); rerenderCard(ctx, ei);
   const row = $(`.excard[data-ei="${ei}"] .setrow[data-si="${si}"]`, sheetEl(ctx)); if (row) { row.classList.add('flash'); const ck = $('.check', row); if (ck) ck.classList.add('pop'); }
   if (ctx === 'active') {
@@ -2376,6 +2377,12 @@ function ldFromWeight(L, kg, plates) {
   if (cur != null && cur > L.base + 1e-9) L.per = (L.once ? plateCalc(L.base + (cur - L.base) * 2, L.base, plates) : plateCalc(cur, L.base, plates)).per;
 }
 const ldPlates = () => [...(U() === 'lb' ? S.settings.platesLb : S.settings.platesKg)].sort((a, b) => b - a);
+// when the loader's set gets checked off, move it to the next set that isn't done
+function ldAdvance(ctx, ei, si) {
+  const L = ldState(ctx, ei); if (!L || L.si !== si) return; const e = draftOf(ctx).exercises[ei];
+  const nx = e.sets.findIndex((s, i) => i > si && !s.done); if (nx < 0) return;
+  L.si = nx; L.from = nx; if (e.sets[nx].w != null) ldFromWeight(L, e.sets[nx].w, ldPlates());
+}
 function toggleLoader(ctx, ei) {
   if (ldState(ctx, ei)) { UI.ld = null; rerenderCard(ctx, ei); return; }
   const prev = UI.ld; UI.ld = null; if (prev && prev.ctx === ctx) rerenderCard(prev.ctx, prev.ei);
