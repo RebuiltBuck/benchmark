@@ -435,6 +435,15 @@ html:not([data-accent="chalk"]) .tab-ind { background: color-mix(in srgb, var(--
 .nut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; margin: 16px 0 8px; }
 .nut-top { display: flex; justify-content: space-between; gap: 4px 8px; font-size: .9375rem; flex-wrap: wrap; }
 .goalbar.thin { height: 5px; margin-top: 6px; }
+.ord-sec .card-head { margin-bottom: 4px; }
+.ord-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.ord-sec .card-head + .ord-row { border-top: 0; }
+.ord-row.on .ord-name > div:first-child { font-weight: 700; }
+.ord-name { min-width: 0; }
+.seg.sm button { min-width: 0; min-height: 34px; padding: 0 9px; font-size: .8125rem; }
+.ord-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ord-tot { min-width: 0; font-size: 1.05rem; }
+.ord-tot b { font-size: 1.4rem; }
 .wc-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .wc-big { font-size: 1.6rem; font-weight: 700; }
 .weekcal .goalbar { margin-top: 8px; }
@@ -1646,7 +1655,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 30</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 31</p>`;
 }
 
 // =====================================================================
@@ -2656,6 +2665,101 @@ Coffee, black|1 cup (237 g)|2|0.3|0|0|0|0|5|0|0`;
 const FOODS = FOODS_RAW.trim().split('\n').map(l => { const a = l.split('|'); const o = { id: 'bf-' + slug(a[0]), name: a[0], serv: a[1], builtin: true }; NUTR.forEach((n, j) => { o[n.k] = parseFloat(a[2 + j]); }); return o; });
 const fmtN = (v, k) => v == null || isNaN(v) ? '–' : (k === 'cal' || k === 'na' || k === 'chol') ? fmtBig(v) : fmtNum(v, 1);
 const dayEntries = day => (S.meals[day] && S.meals[day].entries) || [];
+// ---------- Restaurant order builder ----------
+// Chipotle US nutrition facts (chipotle.com). Values are one standard portion.
+const R_K = ['cal', 'f', 'satf', 'chol', 'na', 'c', 'fib', 'sug', 'p'];
+const rN = a => Object.fromEntries(R_K.map((k, i) => [k, a[i]]));
+const RESTAURANTS = {
+  chipotle: {
+    name: 'Chipotle', note: 'Chipotle US nutrition facts. Light and extra are estimated at half and one and a half portions.',
+    ing: {
+      tortilla: rN([320, 9, 0.5, 0, 600, 50, 3, 0, 8]), tacoflour: rN([80, 2.5, 0, 0, 160, 13, 0.5, 0, 2]), crispy: rN([70, 3, 0, 0, 0, 10, 1, 0, 1]), greens: rN([15, 0, 0, 0, 15, 3, 2, 1, 1]),
+      chicken: rN([180, 7, 3, 125, 310, 0, 0, 0, 32]), steak: rN([150, 6, 2.5, 80, 330, 1, 1, 0, 21]), barbacoa: rN([170, 7, 2.5, 65, 530, 2, 1, 0, 24]), carnitas: rN([210, 12, 7, 65, 450, 0, 0, 0, 23]), sofritas: rN([150, 10, 1.5, 0, 560, 9, 3, 5, 8]),
+      white: rN([210, 4, 0.5, 0, 350, 40, 1, 0, 4]), brown: rN([210, 6, 1, 0, 190, 36, 2, 0, 4]), black: rN([130, 1.5, 0, 0, 210, 22, 7, 2, 8]), pinto: rN([130, 1.5, 0, 0, 210, 21, 8, 1, 8]),
+      fajita: rN([20, 0, 0, 0, 150, 5, 1, 2, 1]), mild: rN([25, 0, 0, 0, 550, 4, 1, 1, 0]), corn: rN([80, 1.5, 0, 0, 330, 16, 3, 4, 3]), green: rN([15, 0, 0, 0, 260, 4, 0, 2, 0]), red: rN([30, 0, 0, 0, 500, 4, 1, 0, 0]),
+      sour: rN([110, 9, 7, 40, 30, 2, 0, 2, 2]), cheese: rN([110, 8, 5, 30, 190, 1, 0, 0, 6]), guac: rN([230, 22, 3.5, 0, 370, 8, 6, 1, 2]), queso: rN([120, 9, 6, 30, 250, 4, 0, 1, 5]), lettuce: rN([5, 0, 0, 0, 0, 1, 1, 0, 0]),
+      chips: rN([540, 25, 3.5, 0, 390, 73, 7, 1, 7]), chipsL: rN([810, 38, 5, 0, 590, 110, 11, 2, 11]), sguac: rN([230, 22, 3.5, 0, 370, 8, 6, 1, 2]), squeso: rN([240, 18, 12, 60, 490, 7, 0, 2, 10]), vin: rN([220, 16, 2.5, 0, 850, 18, 1, 12, 1]),
+      coke: rN([260, 0, 0, 0, 85, 70, 0, 70, 0]), sprite: rN([260, 0, 0, 0, 120, 70, 0, 70, 0]), diet: rN([0, 0, 0, 0, 75, 0, 0, 0, 0]), lemonade: rN([170, 0, 0, 0, 10, 43, 0, 37, 0]),
+    },
+    groups: [
+      { id: 'entree', label: 'Entrée', kind: 'one', def: 'bowl', items: [['bowl', 'Bowl', []], ['burrito', 'Burrito', [['tortilla', 1]]], ['tacos', 'Tacos, soft', [['tacoflour', 3]]], ['crispy', 'Tacos, crispy', [['crispy', 3]]], ['salad', 'Salad', [['greens', 1]]]] },
+      { id: 'protein', label: 'Protein', kind: 'one', amounts: [['1', 'Regular', 1], ['2', 'Double', 2]], items: [['chicken', 'Chicken'], ['steak', 'Steak'], ['barbacoa', 'Barbacoa'], ['carnitas', 'Carnitas'], ['sofritas', 'Sofritas']] },
+      { id: 'rice', label: 'Rice', kind: 'one', amounts: 'lne', items: [['white', 'White rice'], ['brown', 'Brown rice']] },
+      { id: 'beans', label: 'Beans', kind: 'one', amounts: 'lne', items: [['black', 'Black beans'], ['pinto', 'Pinto beans']] },
+      { id: 'top', label: 'Toppings', kind: 'many', amounts: 'lne', items: [['fajita', 'Fajita veggies'], ['mild', 'Fresh tomato salsa'], ['corn', 'Roasted chili-corn salsa'], ['green', 'Tomatillo green salsa'], ['red', 'Tomatillo red salsa'], ['sour', 'Sour cream'], ['cheese', 'Cheese'], ['guac', 'Guacamole'], ['queso', 'Queso blanco'], ['lettuce', 'Romaine lettuce']] },
+      { id: 'side', label: 'Sides and drinks', kind: 'many', items: [['chips', 'Chips'], ['chipsL', 'Large chips'], ['sguac', 'Side of guac'], ['squeso', 'Side of queso'], ['vin', 'Honey vinaigrette'], ['coke', 'Coca-Cola, 22 oz'], ['sprite', 'Sprite, 22 oz'], ['diet', 'Diet Coke, 22 oz'], ['lemonade', 'Lemonade, 22 oz']] },
+    ],
+  },
+};
+const LNE = [['l', 'Light', 0.5], ['n', 'Regular', 1], ['e', 'Extra', 1.5]];
+function orderTotals(O) {
+  const R = RESTAURANTS[O.r]; const t = Object.fromEntries(R_K.map(k => [k, 0]));
+  const add = (id, m) => { const v = R.ing[id]; if (v) R_K.forEach(k => { t[k] += v[k] * m; }); };
+  for (const g of R.groups) {
+    const amts = g.amounts === 'lne' ? LNE : g.amounts;
+    for (const [id, , extra] of g.items) {
+      const sel = O.sel[g.id + ':' + id]; if (!sel) continue;
+      const m = amts ? (amts.find(a => a[0] === sel) || [0, 0, 1])[2] : 1;
+      if (extra) extra.forEach(([iid, n]) => add(iid, n)); else add(id, m);
+    }
+  }
+  R_K.forEach(k => { t[k] = Math.round(t[k] * 10) / 10; });
+  return t;
+}
+function orderName(O) {
+  const R = RESTAURANTS[O.r]; const pick = gid => { const g = R.groups.find(x => x.id === gid); const it = g.items.find(([id]) => O.sel[gid + ':' + id]); return it ? { id: it[0], n: it[1], amt: O.sel[gid + ':' + it[0]] } : null; };
+  const e = pick('entree'), p = pick('protein');
+  return [R.name, p ? (p.amt === '2' ? 'Double ' : '') + p.n : 'Veggie', e ? (e.id === 'crispy' || e.id === 'tacos' ? 'Tacos' : e.n) : ''].join(' ').trim();
+}
+function openOrder(meal, day) {
+  UI.order = { r: 'chipotle', meal, day, sel: { 'entree:bowl': '1' }, name: '', named: false, save: false };
+  renderOrder();
+}
+function renderOrder() {
+  const O = UI.order; if (!O) return; const R = RESTAURANTS[O.r]; const t = orderTotals(O);
+  if (!O.named) O.name = orderName(O);
+  const sec = g => {
+    const amts = g.amounts === 'lne' ? LNE : g.amounts;
+    const rows = g.items.map(([id, label]) => {
+      const key = g.id + ':' + id, sel = O.sel[key]; const v = R.ing[id]; const cal = v ? `<span class="muted small">${fmtBig(v.cal)} cal</span>` : '';
+      if (g.id === 'entree' || !amts) return `<button class="chip ${sel ? 'on' : ''}" data-act="ord-pick" data-g="${g.id}" data-id="${id}" aria-pressed="${!!sel}">${esc(label)}</button>`;
+      return `<div class="ord-row ${sel ? 'on' : ''}"><div class="ord-name"><div>${esc(label)}</div>${cal}</div><div class="seg sm" role="group" aria-label="${esc(label)} amount">${amts.map(([a, al]) => `<button data-act="ord-amt" data-g="${g.id}" data-id="${id}" data-a="${a}" aria-pressed="${sel === a}">${al}</button>`).join('')}</div></div>`;
+    }).join('');
+    const chipsOnly = g.id === 'entree' || !amts;
+    return `<div class="card ord-sec"><div class="card-head"><h2 class="h3">${g.label}</h2>${g.kind === 'one' && g.id !== 'entree' ? '<span class="muted small">Pick one, tap again to remove</span>' : g.kind === 'many' && amts ? '<span class="muted small">Tap again to remove</span>' : ''}</div>${chipsOnly ? `<div class="chips wrap">${rows}</div>` : rows}</div>`;
+  };
+  const body = `<p class="muted small" style="margin:0 2px 10px">${esc(R.note)}</p>${R.groups.map(sec).join('')}
+    <div class="card"><div class="field"><label class="lbl" for="ord-name">Name in your log</label><input class="txt" id="ord-name" value="${esc(O.name)}" autocomplete="off"></div>
+    <label class="check-row"><input type="checkbox" id="ord-save" ${O.save ? 'checked' : ''}> Save to My foods for next time</label></div>`;
+  const foot = `<div class="ord-foot"><div class="ord-tot"><b class="num">${fmtBig(t.cal)}</b> cal<span class="muted small"> · ${fmtN(t.p, 'p')} g protein · ${fmtN(t.c, 'c')} g carbs · ${fmtN(t.f, 'f')} g fat</span></div><button class="btn primary" data-act="ord-add">Add to ${esc(mealName(O.meal))}</button></div>`;
+  openSheet('order', { title: `${R.name} order`, left: `<button class="btn ghost sm" data-act="ord-cancel">Cancel</button>`, body, foot });
+}
+function orderPick(g, id) {
+  const O = UI.order; const R = RESTAURANTS[O.r]; const grp = R.groups.find(x => x.id === g); const key = g + ':' + id;
+  if (grp.kind === 'one') { const had = O.sel[key]; grp.items.forEach(([i]) => delete O.sel[g + ':' + i]); if (!had || g === 'entree') O.sel[key] = '1'; }
+  else { if (O.sel[key]) delete O.sel[key]; else O.sel[key] = '1'; }
+  renderOrder();
+}
+function orderAmt(g, id, a) {
+  const O = UI.order; const R = RESTAURANTS[O.r]; const grp = R.groups.find(x => x.id === g); const key = g + ':' + id;
+  if (O.sel[key] === a) delete O.sel[key];
+  else { if (grp.kind === 'one') grp.items.forEach(([i]) => delete O.sel[g + ':' + i]); O.sel[key] = a; }
+  renderOrder();
+}
+function orderAdd() {
+  const O = UI.order; if (!O) return; const t = orderTotals(O); const name = (O.name || '').trim() || orderName(O);
+  if (!Object.keys(O.sel).some(k => !k.startsWith('entree:'))) { toast('Add something to your order'); return; }
+  const facts = {}; R_K.forEach(k => { facts[k] = t[k]; });
+  const day = O.day || UI.foodDay; if (!S.meals[day]) S.meals[day] = { day, entries: [] };
+  S.meals[day].entries.push({ id: uid(), meal: O.meal, name, serv: '1 order', qty: 1, ...facts });
+  commitDay(day);
+  if (O.save) { S.foods.push({ id: 'f-' + uid(), name, serv: '1 order', ...facts }); commit('foods'); }
+  UI.order = null; closeSheet('order'); renderView(); toast(`Added ${name}`);
+}
+(() => {
+  document.addEventListener('input', ev => { if (ev.target.id === 'ord-name' && UI.order) { UI.order.name = ev.target.value; UI.order.named = true; } });
+  document.addEventListener('change', ev => { if (ev.target.id === 'ord-save' && UI.order) UI.order.save = ev.target.checked; });
+})();
 // Weekly calorie budget: daily goal × 7. Days with nothing logged count as on target.
 function weekCalCard(day, calG) {
   if (!calG) return '';
@@ -2777,7 +2881,7 @@ function viewFood() {
 function openFoodAdd(meal) {
   UI.fadd = { meal: meal || mealGuess(), day: UI.foodDay || dayKey(Date.now()), q: '', recent: [] };
   openSheet('foodadd', { title: `Add to ${mealName(UI.fadd.meal).toLowerCase()}`, left: closeBtn('foodadd', 'Cancel'), onClose: () => { UI.fadd = null; },
-    body: `<div class="pick-top"><div class="search">${ic('search')}<input class="txt" id="food-search" type="search" placeholder="Search foods" autocomplete="off" aria-label="Search foods"></div><div class="scan-grid"><button class="btn primary" data-act="food-scan" ${window.claude ? '' : 'style="grid-column:1/-1"'}>${ic('barcode')} Scan barcode</button>${window.claude ? `<button class="btn soft" data-act="food-label">${ic('camera')} Snap a label</button>` : ''}<button class="btn ghost" data-act="food-new">Type a label</button><button class="btn ghost" data-act="food-recipe">${ic('plus')} Create recipe</button></div></div><div class="pick-list" id="food-list"></div>` });
+    body: `<div class="pick-top"><div class="search">${ic('search')}<input class="txt" id="food-search" type="search" placeholder="Search foods" autocomplete="off" aria-label="Search foods"></div><div class="scan-grid"><button class="btn primary" data-act="food-scan" ${window.claude ? '' : 'style="grid-column:1/-1"'}>${ic('barcode')} Scan barcode</button>${window.claude ? `<button class="btn soft" data-act="food-label">${ic('camera')} Snap a label</button>` : ''}<button class="btn ghost" data-act="food-new">Type a label</button><button class="btn ghost" data-act="food-recipe">${ic('plus')} Create recipe</button><button class="btn soft" data-act="food-order" style="grid-column:1/-1">Build a restaurant order</button></div></div><div class="pick-list" id="food-list"></div>` });
   renderFoodList();
 }
 function recentFoods() {
@@ -2794,6 +2898,7 @@ function renderFoodList() {
   if (!F.pick) { const sm = (S.smeals || []).filter(m); if (sm.length) h += `<div class="pick-group">My meals</div>` + sm.map(x => { const t = smealTotals(x); return `<button class="pick-item" data-act="smeal-add" data-id="${x.id}"><div class="pi-main"><div class="pi-name">${esc(x.name)}</div><div class="muted small">${x.items.length} item${x.items.length === 1 ? '' : 's'} · ${fmtBig(t.cal)} cal · ${fmtNum(t.p, 0)} g protein</div></div>${ic('plus')}</button>`; }).join(''); }
   const rec = F.recent.map((f, i) => [f, i]).filter(([f]) => m(f)); if (rec.length) h += `<div class="pick-group">Recent</div>` + rec.map(([f, i]) => item('recent', f, String(i))).join('');
   const mine = S.foods.filter(m).sort((a, b) => a.name.localeCompare(b.name)); if (mine.length) h += `<div class="pick-group">My foods</div>` + mine.map(f => item('mine', f, f.id)).join('');
+  if (/^(chi|chip|chipo|chipot|chipotl|chipotle|burrito|bowl)/i.test(F.q.trim()) && !F.pick) h = `<button class="exrow ord-hit" data-act="food-order"><div style="min-width:0"><div><b>Build a Chipotle order</b></div><div class="muted small">Pick your protein, rice, beans and toppings</div></div><div class="r">${ic('right')}</div></button>` + h;
   const bi = FOODS.filter(m); if (bi.length) h += `<div class="pick-group">Common foods</div><p class="muted small" style="padding:0 4px">Typical values.</p>` + bi.map(f => item('builtin', f, f.id)).join('');
   F.usda = [];
   if (F.q.trim().length >= 2) {
@@ -3844,6 +3949,11 @@ const ACT = {
   'smeal-add': el => addSavedMeal(el.dataset.id),
   'smeal-manage': el => manageSavedMeal(el.dataset.id),
   'recipe-new': () => { UI.recipeLog = null; openRecipe(null); },
+  'food-order': () => { const F = UI.fadd; const meal = F ? F.meal : mealGuess(), day = F ? F.day : UI.foodDay; closeSheet('foodadd'); openOrder(meal, day); },
+  'ord-pick': el => orderPick(el.dataset.g, el.dataset.id),
+  'ord-amt': el => orderAmt(el.dataset.g, el.dataset.id, el.dataset.a),
+  'ord-add': () => orderAdd(),
+  'ord-cancel': () => { UI.order = null; closeSheet('order'); },
   'food-recipe': () => { const F = UI.fadd; UI.recipeLog = { meal: F ? F.meal : mealGuess(), day: F ? F.day : UI.foodDay }; closeSheet('foodadd'); openRecipe(null); },
   'rc-add': () => openIngredientPicker(),
   'rc-del': el => { if (!UI.recipe) return; const i = +el.dataset.i; const it = UI.recipe.items.splice(i, 1)[0]; renderRecipe(); undoToast(`Removed ${it.name}`, () => { UI.recipe.items.splice(i, 0, it); renderRecipe(); }); },
