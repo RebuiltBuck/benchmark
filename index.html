@@ -456,6 +456,12 @@ html:not([data-accent="chalk"]) .tab-ind { background: color-mix(in srgb, var(--
 .wc-col b { position: absolute; left: 0; right: 0; height: 0; border-top: 1.5px dashed var(--muted); opacity: .7; }
 .wc-day.future .wc-col { opacity: .5; }
 .wc-day.today .wc-col { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.wc-day { min-height: 44px; padding: 0; background: none; }
+.wc-day:disabled { cursor: default; }
+.wc-day.sel .wc-col { box-shadow: inset 0 0 0 2px var(--accent); }
+.wc-day.sel span { color: var(--ink); }
+.wc-detail .link { white-space: nowrap; flex: none; }
+.wc-detail { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; margin: -2px 0 10px; border-radius: 12px; background: var(--surface-2); }
 .wc-target { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 1.05rem; }
 .goals .goal-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .goals .goal-item:last-child { border-bottom: 0; }
@@ -1655,7 +1661,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 31</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 32</p>`;
 }
 
 // =====================================================================
@@ -2777,7 +2783,10 @@ function weekCalCard(day, calG) {
   const pace = info.filter(x => x.past).reduce((a, x) => a + counted(x) - calG, 0);
   const L = d => new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'narrow' });
   const strip = info.map(x => { const h = x.logged ? Math.min(1.25, x.cal / calG) : 0; const over = x.cal > calG * 1.05;
-    return `<div class="wc-day ${x.isToday ? 'today' : ''} ${x.future ? 'future' : ''}" title="${esc(dayLabel(x.d))}: ${x.logged ? fmtBig(x.cal) + ' cal' : 'nothing logged'}"><div class="wc-col"><i class="${over ? 'over' : ''}" style="height:${(h / 1.25 * 100).toFixed(0)}%"></i><b style="bottom:${(1 / 1.25 * 100).toFixed(0)}%"></b></div><span>${L(x.d)}</span></div>`; }).join('');
+    return `<button class="wc-day ${x.isToday ? 'today' : ''} ${x.future ? 'future' : ''} ${UI.wcSel === x.d ? 'sel' : ''}" data-act="wc-day" data-d="${x.d}" ${x.future ? 'disabled' : ''} aria-pressed="${UI.wcSel === x.d}" aria-label="${esc(dayLabel(x.d))}: ${x.logged ? fmtBig(x.cal) + ' calories' : 'nothing logged'}"><div class="wc-col"><i class="${over ? 'over' : ''}" style="height:${(h / 1.25 * 100).toFixed(0)}%"></i><b style="bottom:${(1 / 1.25 * 100).toFixed(0)}%"></b></div><span>${L(x.d)}</span></button>`; }).join('');
+  const selI = info.find(x => x.d === UI.wcSel);
+  const detail = selI ? (() => { const es = dayEntries(selI.d); const tt = sumN(es); const diff = (tt.cal || 0) - calG;
+    return `<div class="wc-detail"><div><b>${esc(dayLabel(selI.d))}</b><div class="muted small">${selI.logged ? `${fmtBig(tt.cal || 0)} cal · ${fmtN(tt.p || 0, 'p')} g protein · ${Math.abs(diff) < calG * 0.03 ? 'right on goal' : diff > 0 ? fmtBig(diff) + ' over goal' : fmtBig(-diff) + ' under goal'}` : 'Nothing logged this day'}</div></div>${selI.d !== day ? `<button class="link" data-act="wc-open" data-d="${selI.d}">Open day</button>` : ''}</div>`; })() : '';
   let msg;
   if (cur) {
     const target = Math.round((budget - before) / daysLeft);
@@ -2788,7 +2797,7 @@ function weekCalCard(day, calG) {
   return `<div class="card weekcal"><div class="card-head"><h2 class="h3">${cur ? 'This week' : 'Week of ' + esc(new Date(ws + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</h2><span class="muted small">${fmtBig(calG)} a day × 7</span></div>
     <div class="wc-top"><div><span class="num wc-big">${fmtBig(used)}</span> <span class="muted">/ ${fmtBig(budget)} cal</span></div><div class="muted small">${left >= 0 ? `${fmtBig(left)} left` : `${fmtBig(-left)} over`}</div></div>
     <div class="goalbar"><i style="width:${pct.toFixed(1)}%"></i></div>
-    <div class="wc-strip">${strip}</div>${msg}${unloggedPast ? `<div class="muted small" style="margin-top:4px">Days you didn't log count as on target.</div>` : ''}</div>`;
+    <div class="wc-strip">${strip}</div>${detail}${msg}${unloggedPast ? `<div class="muted small" style="margin-top:4px">Days you didn't log count as on target.</div>` : ''}</div>`;
 }
 function sumN(entries) { const t = {}; NUTR.forEach(n => { t[n.k] = 0; }); for (const e of entries) { const q = e.qty || 1; NUTR.forEach(n => { if (e[n.k] != null) t[n.k] += e[n.k] * q; }); } return t; }
 function mealGuess() { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 10.5 ? 'b' : h < 15 ? 'l' : h < 21 ? 'd' : 's'; }
@@ -3972,6 +3981,8 @@ const ACT = {
   'setup-next': () => setupNext(),
   'setup-back': () => { UI.setup.step = Math.max(0, UI.setup.step - 1); renderSetup(); },
   'setup-finish': el => finishSetup(el.dataset.v === '1'),
+  'wc-day': el => { UI.wcSel = UI.wcSel === el.dataset.d ? null : el.dataset.d; renderView(); },
+  'wc-open': el => { UI.foodDay = el.dataset.d; UI.wcSel = null; renderView(); const v = $('#view'); if (v) v.scrollTo({ top: 0, behavior: 'smooth' }); window.scrollTo({ top: 0, behavior: 'smooth' }); },
   'food-prev': () => { UI.foodDay = shiftDay(UI.foodDay, -1); renderView(); },
   'food-next': () => { UI.foodDay = shiftDay(UI.foodDay, 1); renderView(); },
   'food-today': () => { UI.foodDay = dayKey(Date.now()); renderView(); },
