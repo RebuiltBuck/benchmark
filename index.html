@@ -460,6 +460,13 @@ html:not([data-accent="chalk"]) .tab-ind { background: color-mix(in srgb, var(--
 .wc-day:disabled { cursor: default; }
 .wc-day.sel .wc-col { box-shadow: inset 0 0 0 2px var(--accent); }
 .wc-day.sel span { color: var(--ink); }
+.ntags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+#ff-tags .ntags { margin-top: 8px; }
+.ntag { display: inline-flex; align-items: center; gap: 4px; font-size: .75rem; font-weight: 700; padding: 2px 8px 2px 6px; border-radius: 999px; line-height: 1.5; }
+.ntag.good { color: light-dark(#0F6B3E, #5BE3A1); background: light-dark(#E3F6EC, rgb(91 227 161 / .14)); }
+.ntag.bad { color: light-dark(#A3261A, #FF8A7A); background: light-dark(#FCE8E5, rgb(255 138 122 / .14)); }
+.ntag .ic { width: .8rem; height: .8rem; stroke-width: 3; }
+.ntag b { width: .8rem; text-align: center; font-weight: 800; }
 .wc-detail .link { white-space: nowrap; flex: none; }
 .wc-detail { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; margin: -2px 0 10px; border-radius: 12px; background: var(--surface-2); }
 .wc-target { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 1.05rem; }
@@ -1661,7 +1668,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 32</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 33</p>`;
 }
 
 // =====================================================================
@@ -2898,16 +2905,29 @@ function recentFoods() {
   for (const d of Object.keys(S.meals).sort().reverse().slice(0, 30)) for (const e of dayEntries(d).slice().reverse()) { const k = e.name.toLowerCase(); if (seen.has(k)) continue; seen.add(k); out.push(e); }
   return out.slice(0, 12);
 }
+// Quick notes on a serving: what's good, what to watch
+function nutriTags(f) {
+  const v = k => (f[k] == null || f[k] === '' ? null : Number(f[k])); const cal = v('cal') || 0, p = v('p'), fib = v('fib'), sug = v('sug'), na = v('na'), sat = v('satf');
+  const t = [];
+  if (p != null && (p >= 20 || (p >= 10 && p * 4 >= cal * 0.25))) t.push([1, 'High protein']);
+  if (fib != null && fib >= 5) t.push([1, 'High fiber']);
+  if (sug != null && sug >= 15) t.push([0, 'High sugar']);
+  if (sat != null && sat >= 5) t.push([0, 'High saturated fat']);
+  if (na != null && na >= 600) t.push([0, 'High sodium']);
+  if (cal >= 900) t.push([0, 'Very high calorie']);
+  return t;
+}
+const tagsHTML = f => { const t = nutriTags(f); return t.length ? `<div class="ntags">${t.map(([g, l]) => `<span class="ntag ${g ? 'good' : 'bad'}">${g ? ic('check') : '<b aria-hidden="true">!</b>'}${l}</span>`).join('')}</div>` : ''; };
 function renderFoodList() {
   const el = $('#food-list'), F = UI.fadd; if (!el || !F) return;
   const words = F.q.toLowerCase().split(/\s+/).filter(Boolean); const m = x => words.every(w => x.name.toLowerCase().includes(w));
   F.recent = recentFoods();
-  const item = (src, f, id) => `<button class="pick-item" data-act="food-pick" data-src="${src}" data-id="${esc(id)}"><div class="pi-main"><div class="pi-name">${esc(f.name)}</div><div class="muted small">${esc(f.serv || '1 serving')} · ${fmtBig(f.cal || 0)} cal${f.p != null ? ` · ${fmtNum(f.p, 1)} g protein` : ''}</div></div>${ic('plus')}</button>`;
+  const item = (src, f, id) => `<button class="pick-item" data-act="food-pick" data-src="${src}" data-id="${esc(id)}"><div class="pi-main"><div class="pi-name">${esc(f.name)}</div><div class="muted small">${esc(f.serv || '1 serving')} · ${fmtBig(f.cal || 0)} cal${f.p != null ? ` · ${fmtNum(f.p, 1)} g protein` : ''}</div>${tagsHTML(f)}</div>${ic('plus')}</button>`;
   let h = '';
   if (!F.pick) { const sm = (S.smeals || []).filter(m); if (sm.length) h += `<div class="pick-group">My meals</div>` + sm.map(x => { const t = smealTotals(x); return `<button class="pick-item" data-act="smeal-add" data-id="${x.id}"><div class="pi-main"><div class="pi-name">${esc(x.name)}</div><div class="muted small">${x.items.length} item${x.items.length === 1 ? '' : 's'} · ${fmtBig(t.cal)} cal · ${fmtNum(t.p, 0)} g protein</div></div>${ic('plus')}</button>`; }).join(''); }
   const rec = F.recent.map((f, i) => [f, i]).filter(([f]) => m(f)); if (rec.length) h += `<div class="pick-group">Recent</div>` + rec.map(([f, i]) => item('recent', f, String(i))).join('');
   const mine = S.foods.filter(m).sort((a, b) => a.name.localeCompare(b.name)); if (mine.length) h += `<div class="pick-group">My foods</div>` + mine.map(f => item('mine', f, f.id)).join('');
-  if (/^(chi|chip|chipo|chipot|chipotl|chipotle|burrito|bowl)/i.test(F.q.trim()) && !F.pick) h = `<button class="exrow ord-hit" data-act="food-order"><div style="min-width:0"><div><b>Build a Chipotle order</b></div><div class="muted small">Pick your protein, rice, beans and toppings</div></div><div class="r">${ic('right')}</div></button>` + h;
+  if (/^(chipo|burrito)/i.test(F.q.trim()) && !F.pick) h = `<button class="exrow ord-hit" data-act="food-order"><div style="min-width:0"><div><b>Build a Chipotle order</b></div><div class="muted small">Pick your protein, rice, beans and toppings</div></div><div class="r">${ic('right')}</div></button>` + h;
   const bi = FOODS.filter(m); if (bi.length) h += `<div class="pick-group">Common foods</div><p class="muted small" style="padding:0 4px">Typical values.</p>` + bi.map(f => item('builtin', f, f.id)).join('');
   F.usda = [];
   if (F.q.trim().length >= 2) {
@@ -2933,7 +2953,7 @@ function openFoodForm({ mode, base = {}, meal, day, isMine = false, fresh = fals
     ${!lib ? `<div class="grid2"><div class="field"><label class="lbl" for="ff-qty">Servings</label><input class="txt" id="ff-qty" inputmode="decimal" value="${base.qty != null ? fmtNum(base.qty, 2) : 1}" autocomplete="off"></div><div class="field"><label class="lbl" for="ff-meal">Meal</label><select class="txt" id="ff-meal">${MEALS.map(([k, l]) => `<option value="${k}" ${k === meal ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>` : ''}
     <div class="lbl" id="ff-factlbl">${quick ? 'Amounts' : 'Nutrition facts for one serving'}</div>
     <div class="nut-inputs">${keys.map(k => `<div class="field"><label class="lbl" for="ff-${k}">${NK[k].l} (${NK[k].u})</label><input class="txt" id="ff-${k}" data-nk="${k}" inputmode="decimal" value="${val(k)}" autocomplete="off"></div>`).join('')}</div>
-    ${!lib ? `<div class="food-total" id="ff-total"></div>` : ''}
+    ${!lib ? `<div class="food-total" id="ff-total"></div><div id="ff-tags"></div>` : ''}
     ${mode === 'add' && !isMine && !inMine ? `<label class="check-row"><input type="checkbox" id="ff-save" ${fresh ? 'checked' : ''}> Save to My foods for next time</label>` : ''}
     ${entry || (lib && !fresh) ? `<button class="btn danger-text" data-x="del">${entry ? 'Remove from this meal' : 'Delete from My foods'}</button>` : ''}
     <div class="foot-row"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn primary" data-x="save">${entry || lib ? 'Save' : 'Add'}</button></div>`);
@@ -2946,7 +2966,7 @@ function openFoodForm({ mode, base = {}, meal, day, isMine = false, fresh = fals
     if (gmode) qi.value = '100'; else if (was) qi.value = '1';
     $('#ff-factlbl', d.el).textContent = gmode ? 'Nutrition facts per 100 g' : 'Nutrition facts for one serving'; upd();
   });
-  const upd = () => { const t = $('#ff-total', d.el); if (!t) return; const q = (num('#ff-qty') || 0) / (gmode ? 100 : 1); const c = (num('#ff-cal') || 0) * q, p = (num('#ff-p') || 0) * q; t.textContent = `Total: ${fmtBig(c)} cal · ${fmtNum(p, 1)} g protein`; };
+  const upd = () => { const t = $('#ff-total', d.el); if (!t) return; const q = (num('#ff-qty') || 0) / (gmode ? 100 : 1); const c = (num('#ff-cal') || 0) * q, p = (num('#ff-p') || 0) * q; t.textContent = `Total: ${fmtBig(c)} cal · ${fmtNum(p, 1)} g protein`; const tg = $('#ff-tags', d.el); if (tg) { const o = {}; ['cal', 'p', 'fib', 'sug', 'na', 'satf'].forEach(k => { const x = $('#ff-' + k, d.el); if (x && x.value !== '') o[k] = (num('#ff-' + k) || 0) * q; }); tg.innerHTML = tagsHTML(o); } };
   d.el.addEventListener('input', upd); upd();
   setTimeout(() => { const f = $(fresh || quick ? (quick ? '#ff-cal' : '#ff-name') : '#ff-qty', d.el); if (f) { f.focus(); try { f.select(); } catch (e) {} } }, 80);
   d.el.addEventListener('click', ev => {
