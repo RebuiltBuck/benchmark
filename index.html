@@ -1667,7 +1667,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 34</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 35</p>`;
 }
 
 // =====================================================================
@@ -2880,16 +2880,19 @@ function viewFood() {
   const isToday = day === dayKey(Date.now()); const calG = G.cal;
   let h = `<div class="card daynav"><button class="icon-btn" data-act="food-prev" aria-label="Previous day">${ic('left')}</button><div style="text-align:center"><div class="h3">${esc(dayLabel(day))}</div>${isToday ? `<div class="muted small">${ents.length} item${ents.length === 1 ? '' : 's'} logged</div>` : `<button class="link" data-act="food-today">Back to today</button>`}</div><button class="icon-btn" data-act="food-next" aria-label="Next day" ${isToday ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button></div>`;
   h += foodSummaryCard(tot, G, show);
-  h += weekCalCard(day, calG);
   h += waterCard(day);
   for (const [m, label] of MEALS) {
     const me = ents.filter(e => e.meal === m); const mc = me.reduce((s, e) => s + (e.cal || 0) * (e.qty || 1), 0);
     h += `<div class="card"><div class="card-head"><h2 class="h3">${label}</h2><span class="meal-tools"><span class="muted">${me.length ? fmtBig(mc) + ' cal' : ''}</span>${me.length ? `<button class="icon-btn sm" data-act="meal-menu" data-meal="${m}" aria-label="${label} options">${ic('dots')}</button>` : ''}</span></div>${me.map(e => `<div class="swipewrap"><div class="swipe-bg" aria-hidden="true">${ic('trash')}</div><button class="exrow" data-act="food-edit" data-id="${e.id}"><div style="min-width:0"><div style="font-weight:700">${esc(e.name)}</div><div class="muted small">${esc(qtyLabel(e))}${e.p != null ? ` · ${fmtNum(e.p * (e.qty || 1), 1)} g protein` : ''}</div>${tagsHTML(Object.fromEntries(['cal', 'p', 'fib', 'sug', 'na', 'satf'].filter(k => e[k] != null).map(k => [k, e[k] * (e.qty || 1)])))}</div><div class="r"><b>${fmtBig((e.cal || 0) * (e.qty || 1))}</b> <span class="muted small">cal</span></div></button></div>`).join('')}<button class="btn ghost block" data-act="food-add" data-meal="${m}" style="margin-top:6px">${ic('plus')} Add to ${label.toLowerCase()}</button></div>`;
   }
+  // the weekly budget sits at the bottom; without a calorie goal, show the last 7 days instead
+  if (calG) h += weekCalCard(day, calG);
+  else {
   const pts = []; let sum = 0, n = 0;
   for (let i = 6; i >= 0; i--) { const d = shiftDay(dayKey(Date.now()), -i); const t = sumN(dayEntries(d)); if (t.cal > 0) { sum += t.cal; n++; } pts.push({ label: new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short' }), y: Math.round(t.cal), cur: i === 0, tip: `<b>${fmtBig(t.cal)} cal</b> · ${fmtNum(t.p, 0)} g protein<br>${esc(dayLabel(d))}` }); }
   CHARTS.set('food7', { kind: 'bar', pts, goal: calG || 0, every: 1, lastLabel: 'Today', padL: 42, aria: 'Calories per day', fmtY: v => v >= 1000 ? fmtNum(v / 1000, 1) + 'k' : fmtNum(v, 0) });
   h += `<div class="card"><div class="card-head"><h2 class="h3">Calories, last 7 days</h2><span class="muted small">${n ? `Average ${fmtBig(sum / n)} on days you logged` : ''}</span></div><div class="chart" data-chart="food7"></div></div>`;
+  }
   h += `<div class="btn-row"><button class="btn ghost" data-act="food-lib">My foods (${S.foods.length})</button><button class="btn ghost" data-act="food-copy">Copy the day before</button></div>`;
   return h;
 }
