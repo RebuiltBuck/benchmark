@@ -1667,7 +1667,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 35</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 36</p>`;
 }
 
 // =====================================================================
@@ -2683,7 +2683,7 @@ const R_K = ['cal', 'f', 'satf', 'chol', 'na', 'c', 'fib', 'sug', 'p'];
 const rN = a => Object.fromEntries(R_K.map((k, i) => [k, a[i]]));
 const RESTAURANTS = {
   chipotle: {
-    name: 'Chipotle', note: 'Chipotle US nutrition facts. Light and extra are estimated at half and one and a half portions.',
+    name: 'Chipotle', note: 'Chipotle US nutrition facts. Light and extra are estimated at half and one and a half portions.', start: { 'entree:bowl': '1' },
     ing: {
       tortilla: rN([320, 9, 0.5, 0, 600, 50, 3, 0, 8]), tacoflour: rN([80, 2.5, 0, 0, 160, 13, 0.5, 0, 2]), crispy: rN([70, 3, 0, 0, 0, 10, 1, 0, 1]), greens: rN([15, 0, 0, 0, 15, 3, 2, 1, 1]),
       chicken: rN([180, 7, 3, 125, 310, 0, 0, 0, 32]), steak: rN([150, 6, 2.5, 80, 330, 1, 1, 0, 21]), barbacoa: rN([170, 7, 2.5, 65, 530, 2, 1, 0, 24]), carnitas: rN([210, 12, 7, 65, 450, 0, 0, 0, 23]), sofritas: rN([150, 10, 1.5, 0, 560, 9, 3, 5, 8]),
@@ -2694,13 +2694,47 @@ const RESTAURANTS = {
       coke: rN([260, 0, 0, 0, 85, 70, 0, 70, 0]), sprite: rN([260, 0, 0, 0, 120, 70, 0, 70, 0]), diet: rN([0, 0, 0, 0, 75, 0, 0, 0, 0]), lemonade: rN([170, 0, 0, 0, 10, 43, 0, 37, 0]),
     },
     groups: [
-      { id: 'entree', label: 'Entrée', kind: 'one', def: 'bowl', items: [['bowl', 'Bowl', []], ['burrito', 'Burrito', [['tortilla', 1]]], ['tacos', 'Tacos, soft', [['tacoflour', 3]]], ['crispy', 'Tacos, crispy', [['crispy', 3]]], ['salad', 'Salad', [['greens', 1]]]] },
+      { id: 'entree', label: 'Entrée', kind: 'one', req: true, items: [['bowl', 'Bowl', []], ['burrito', 'Burrito', [['tortilla', 1]]], ['tacos', 'Tacos, soft', [['tacoflour', 3]]], ['crispy', 'Tacos, crispy', [['crispy', 3]]], ['salad', 'Salad', [['greens', 1]]]] },
       { id: 'protein', label: 'Protein', kind: 'one', amounts: [['1', 'Regular', 1], ['2', 'Double', 2]], items: [['chicken', 'Chicken'], ['steak', 'Steak'], ['barbacoa', 'Barbacoa'], ['carnitas', 'Carnitas'], ['sofritas', 'Sofritas']] },
       { id: 'rice', label: 'Rice', kind: 'one', amounts: 'lne', items: [['white', 'White rice'], ['brown', 'Brown rice']] },
       { id: 'beans', label: 'Beans', kind: 'one', amounts: 'lne', items: [['black', 'Black beans'], ['pinto', 'Pinto beans']] },
       { id: 'top', label: 'Toppings', kind: 'many', amounts: 'lne', items: [['fajita', 'Fajita veggies'], ['mild', 'Fresh tomato salsa'], ['corn', 'Roasted chili-corn salsa'], ['green', 'Tomatillo green salsa'], ['red', 'Tomatillo red salsa'], ['sour', 'Sour cream'], ['cheese', 'Cheese'], ['guac', 'Guacamole'], ['queso', 'Queso blanco'], ['lettuce', 'Romaine lettuce']] },
       { id: 'side', label: 'Sides and drinks', kind: 'many', items: [['chips', 'Chips'], ['chipsL', 'Large chips'], ['sguac', 'Side of guac'], ['squeso', 'Side of queso'], ['vin', 'Honey vinaigrette'], ['coke', 'Coca-Cola, 22 oz'], ['sprite', 'Sprite, 22 oz'], ['diet', 'Diet Coke, 22 oz'], ['lemonade', 'Lemonade, 22 oz']] },
     ],
+  },
+  shakeshack: {
+    name: 'Shake Shack', note: 'Shake Shack US nutrition facts. Burgers are built from their parts, which matches the menu totals within a few calories.',
+    start: { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:sauce': '1', 'top:lettuce': '1', 'top:tomato': '1' },
+    presets: [['ShackBurger', { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:sauce': '1', 'top:lettuce': '1', 'top:tomato': '1' }], ['SmokeShack', { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:bacon': '1', 'top:cherry': '1', 'top:sauce': '1' }], ['Avocado Bacon', { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:avocado': '1', 'top:bacon': '1', 'top:sauce': '1' }], ['Hamburger', { 'bun:roll': '1', 'patty:beef': '1' }], ['Chicken Shack', { 'bun:roll': '1', 'patty:chicken': '1', 'top:lettuce': '1', 'top:pickle': '1', 'top:herbmayo': '1' }], ['No burger', {}]],
+    ing: {
+      roll: rN([180, 6, 3, 10, 170, 24, 0, 5, 7]), gf: rN([160, 3, 0, 0, 350, 31, 2, 5, 3]), wrap: rN([5, 0, 0, 0, 15, 1, 1, 0, 1]),
+      beef: rN([190, 12, 4.5, 65, 690, 0, 0, 0, 19]), veggie: rN([210, 7, 4, 0, 760, 20, 2, 2, 8]), chicken: rN([280, 16, 3.5, 90, 650, 9, 0, 0, 26]), cheese: rN([70, 6, 3.5, 15, 340, 1, 0, 0, 4]),
+      sauce: rN([60, 6, 1, 10, 60, 0, 0, 0, 0]), lettuce: rN([1, 0, 0, 0, 0, 0, 0, 0, 0]), tomato: rN([5, 0, 0, 0, 0, 1, 0, 0, 0]), pickle: rN([1, 0, 0, 0, 140, 0, 0, 0, 0]), onion: rN([5, 0, 0, 0, 0, 1, 0, 0, 0]),
+      bacon: rN([90, 7, 3, 20, 160, 0, 0, 0, 6]), avocado: rN([60, 5, 0.5, 0, 0, 3, 2, 0, 1]), cherry: rN([10, 0, 0, 0, 470, 2, 0, 2, 0]), jalap: rN([5, 0, 0, 0, 300, 1, 1, 0, 0]), crispy: rN([110, 8, 1.5, 0, 95, 7, 0, 0, 1]), herbmayo: rN([90, 10, 0.5, 10, 140, 0, 0, 0, 0]), csauce: rN([80, 7, 5, 30, 95, 1, 0, 0, 2]),
+      fries: rN([470, 22, 4.5, 15, 740, 63, 7, 1, 6]), cfries: rN([710, 44, 19, 95, 1020, 64, 7, 1, 12]), bcfries: rN([850, 55, 23, 125, 1260, 65, 6, 1, 21]), rings: rN([570, 33, 6, 0, 670, 64, 4, 7, 6]),
+      bites6: rN([350, 18, 3.5, 45, 980, 28, 2, 1, 18]), bites10: rN([580, 30, 6, 75, 1640, 47, 3, 2, 31]), hotdog: rN([350, 22, 10, 50, 800, 25, 0, 6, 16]), cheesedog: rN([450, 31, 15, 85, 910, 25, 2, 6, 19]),
+      ranch: rN([140, 14, 1.5, 5, 250, 1, 0, 1, 1]), bbq: rN([70, 0, 0, 0, 380, 16, 0, 14, 1]), honeym: rN([180, 19, 2.5, 15, 230, 4, 0, 4, 1]),
+      vanilla: rN([680, 36, 22, 235, 430, 72, 0, 71, 18]), chocolate: rN([750, 45, 27, 255, 310, 76, 0, 69, 16]), vc: rN([720, 41, 25, 245, 380, 74, 2, 71, 18]), bw: rN([770, 42, 26, 245, 460, 80, 0, 76, 19]), straw: rN([690, 35, 21, 230, 430, 77, 0, 75, 17]), cnc: rN([850, 44, 24, 235, 580, 98, 0, 86, 19]), coffee: rN([700, 36, 22, 240, 430, 76, 0, 72, 19]),
+      whip: rN([70, 5, 3.5, 20, 20, 5, 0, 4, 1]), malt: rN([90, 1, 0.5, 5, 70, 19, 0, 16, 2]),
+      lemS: rN([160, 0, 0, 0, 10, 43, 0, 40, 0]), lemL: rN([270, 0, 0, 0, 15, 70, 0, 66, 0]), ffS: rN([80, 0, 0, 0, 10, 22, 0, 20, 0]), ffL: rN([140, 0, 0, 0, 15, 36, 0, 33, 0]), stS: rN([110, 0, 0, 0, 10, 28, 0, 27, 0]), stL: rN([170, 0, 0, 0, 15, 45, 0, 44, 0]), utS: rN([5, 0, 0, 0, 10, 1, 0, 0, 0]), utL: rN([5, 0, 0, 0, 15, 2, 0, 0, 0]),
+      cokeS: rN([140, 0, 0, 0, 45, 39, 0, 39, 0]), cokeL: rN([210, 0, 0, 0, 65, 58, 0, 58, 0]), dietS: rN([0, 0, 0, 0, 40, 0, 0, 0, 0]), dietL: rN([0, 0, 0, 0, 60, 0, 0, 0, 0]), zeroS: rN([0, 0, 0, 0, 40, 0, 0, 0, 0]), zeroL: rN([0, 0, 0, 0, 60, 0, 0, 0, 0]), spriteS: rN([140, 0, 0, 0, 30, 36, 0, 32, 0]), spriteL: rN([240, 0, 0, 0, 55, 60, 0, 53, 0]), rbS: rN([160, 0, 0, 0, 60, 39, 0, 39, 0]), rbL: rN([260, 0, 0, 0, 95, 65, 0, 65, 0]),
+    },
+    groups: [
+      { id: 'bun', label: 'Bun', kind: 'one', items: [['roll', 'Potato roll'], ['gf', 'Gluten-free bun'], ['wrap', 'Lettuce wrap']] },
+      { id: 'patty', label: 'Patty', kind: 'one', amounts: [['1', 'Single', 1], ['2', 'Double', 2], ['3', 'Triple', 3]], items: [['beef', 'Beef'], ['chicken', 'Crispy chicken'], ['veggie', 'Veggie patty']] },
+      { id: 'cheese', label: 'Cheese', kind: 'one', amounts: [['1', '1 slice', 1], ['2', '2 slices', 2], ['3', '3 slices', 3]], items: [['cheese', 'American cheese']] },
+      { id: 'top', label: 'Toppings and sauces', kind: 'many', items: [['sauce', 'ShackSauce'], ['lettuce', 'Lettuce'], ['tomato', 'Tomato'], ['pickle', 'Pickles'], ['onion', 'Onion'], ['bacon', 'Bacon'], ['avocado', 'Avocado'], ['cherry', 'Cherry peppers'], ['jalap', 'Pickled jalapeños'], ['crispy', 'Crispy onions'], ['herbmayo', 'Herb mayo'], ['csauce', 'Cheese sauce']] },
+      { id: 'side', label: 'Sides', kind: 'many', items: [['fries', 'Fries'], ['cfries', 'Cheese fries'], ['bcfries', 'Bacon cheese fries'], ['rings', 'Onion rings'], ['bites6', 'Chicken Bites, 6'], ['bites10', 'Chicken Bites, 10'], ['hotdog', 'Hot dog'], ['cheesedog', 'Cheese dog'], ['ranch', 'Ranch'], ['bbq', 'BBQ sauce'], ['honeym', 'Honey mustard']] },
+      { id: 'shake', label: 'Shake', kind: 'one', items: [['vanilla', 'Vanilla'], ['chocolate', 'Chocolate'], ['vc', 'Vanilla and chocolate'], ['bw', 'Black and white'], ['straw', 'Strawberry'], ['cnc', 'Cookies and cream'], ['coffee', 'Coffee']] },
+      { id: 'shakeadd', label: 'Shake add-ons', kind: 'many', items: [['whip', 'Whipped cream'], ['malt', 'Malt']] },
+      { id: 'drink', label: 'Drink', kind: 'one', items: [['lem', 'Lemonade', null, ['lemS', 'lemL']], ['ff', 'Fifty-fifty', null, ['ffS', 'ffL']], ['st', 'Sweet iced tea', null, ['stS', 'stL']], ['ut', 'Unsweetened iced tea', null, ['utS', 'utL']], ['coke', 'Coke', null, ['cokeS', 'cokeL']], ['diet', 'Diet Coke', null, ['dietS', 'dietL']], ['zero', 'Coke Zero', null, ['zeroS', 'zeroL']], ['sprite', 'Sprite', null, ['spriteS', 'spriteL']], ['rb', 'Root beer', null, ['rbS', 'rbL']]], amounts: [['s', 'Small', 0], ['l', 'Large', 1]] },
+    ],
+    nameFn: O => { const has = k => O.sel[k]; const pk = ['beef', 'chicken', 'veggie'].find(k => has('patty:' + k)); const size = pk ? ({ 1: 'Single', 2: 'Double', 3: 'Triple' })[O.sel['patty:' + pk]] : '';
+      let main = '';
+      if (pk === 'chicken') main = 'Chicken Shack'; else if (pk === 'veggie') main = 'Veggie Burger'; else if (pk) main = has('top:bacon') && has('top:cherry') ? 'SmokeShack' : has('top:avocado') && has('top:bacon') ? 'Avocado Bacon Burger' : has('cheese:cheese') && has('top:sauce') ? 'ShackBurger' : has('cheese:cheese') ? 'Cheeseburger' : 'Hamburger';
+      const side = ['fries', 'cfries', 'bcfries'].some(k => has('side:' + k)) ? ' + fries' : has('side:rings') ? ' + onion rings' : ''; const shake = Object.keys(O.sel).some(k => k.startsWith('shake:')) ? ' + shake' : '';
+      if (!pk) { const parts = [side.slice(3), shake.slice(3)].filter(Boolean); return 'Shake Shack ' + (parts.length ? parts.join(' + ') : 'order'); }
+      return ('Shake Shack ' + size + ' ' + main + side + shake).replace(/\s+/g, ' ').trim(); },
   },
 };
 const LNE = [['l', 'Light', 0.5], ['n', 'Regular', 1], ['e', 'Extra', 1.5]];
@@ -2709,22 +2743,23 @@ function orderTotals(O) {
   const add = (id, m) => { const v = R.ing[id]; if (v) R_K.forEach(k => { t[k] += v[k] * m; }); };
   for (const g of R.groups) {
     const amts = g.amounts === 'lne' ? LNE : g.amounts;
-    for (const [id, , extra] of g.items) {
+    for (const [id, , extra, sizes] of g.items) {
       const sel = O.sel[g.id + ':' + id]; if (!sel) continue;
-      const m = amts ? (amts.find(a => a[0] === sel) || [0, 0, 1])[2] : 1;
-      if (extra) extra.forEach(([iid, n]) => add(iid, n)); else add(id, m);
+      const am = amts ? (amts.find(a => a[0] === sel) || amts[0]) : null; const m = am ? am[2] : 1;
+      if (sizes) add(sizes[m] || sizes[0], 1); else if (extra && extra.length) extra.forEach(([iid, n]) => add(iid, n)); else if (!extra) add(id, m);
     }
   }
   R_K.forEach(k => { t[k] = Math.round(t[k] * 10) / 10; });
   return t;
 }
 function orderName(O) {
-  const R = RESTAURANTS[O.r]; const pick = gid => { const g = R.groups.find(x => x.id === gid); const it = g.items.find(([id]) => O.sel[gid + ':' + id]); return it ? { id: it[0], n: it[1], amt: O.sel[gid + ':' + it[0]] } : null; };
+  const R = RESTAURANTS[O.r]; if (R.nameFn) return R.nameFn(O); const pick = gid => { const g = R.groups.find(x => x.id === gid); const it = g.items.find(([id]) => O.sel[gid + ':' + id]); return it ? { id: it[0], n: it[1], amt: O.sel[gid + ':' + it[0]] } : null; };
   const e = pick('entree'), p = pick('protein');
   return [R.name, p ? (p.amt === '2' ? 'Double ' : '') + p.n : 'Veggie', e ? (e.id === 'crispy' || e.id === 'tacos' ? 'Tacos' : e.n) : ''].join(' ').trim();
 }
-function openOrder(meal, day) {
-  UI.order = { r: 'chipotle', meal, day, sel: { 'entree:bowl': '1' }, name: '', named: false, save: false };
+function openOrder(meal, day, r) {
+  r = r || S.settings.lastRest || 'chipotle'; if (!RESTAURANTS[r]) r = 'chipotle';
+  UI.order = { r, meal, day, sel: { ...RESTAURANTS[r].start }, name: '', named: false, save: false };
   renderOrder();
 }
 function renderOrder() {
@@ -2733,14 +2768,16 @@ function renderOrder() {
   const sec = g => {
     const amts = g.amounts === 'lne' ? LNE : g.amounts;
     const rows = g.items.map(([id, label]) => {
-      const key = g.id + ':' + id, sel = O.sel[key]; const v = R.ing[id]; const cal = v ? `<span class="muted small">${fmtBig(v.cal)} cal</span>` : '';
-      if (g.id === 'entree' || !amts) return `<button class="chip ${sel ? 'on' : ''}" data-act="ord-pick" data-g="${g.id}" data-id="${id}" aria-pressed="${!!sel}">${esc(label)}</button>`;
+      const key = g.id + ':' + id, sel = O.sel[key]; const sz = (g.items.find(x => x[0] === id) || [])[3]; const v = R.ing[sz ? sz[0] : id]; const cal = v ? `<span class="muted small">${fmtBig(v.cal)}${sz ? '–' + fmtBig(R.ing[sz[1]].cal) : ''} cal</span>` : '';
+      if (!amts) return `<button class="chip ${sel ? 'on' : ''}" data-act="ord-pick" data-g="${g.id}" data-id="${id}" aria-pressed="${!!sel}">${esc(label)}</button>`;
       return `<div class="ord-row ${sel ? 'on' : ''}"><div class="ord-name"><div>${esc(label)}</div>${cal}</div><div class="seg sm" role="group" aria-label="${esc(label)} amount">${amts.map(([a, al]) => `<button data-act="ord-amt" data-g="${g.id}" data-id="${id}" data-a="${a}" aria-pressed="${sel === a}">${al}</button>`).join('')}</div></div>`;
     }).join('');
-    const chipsOnly = g.id === 'entree' || !amts;
-    return `<div class="card ord-sec"><div class="card-head"><h2 class="h3">${g.label}</h2>${g.kind === 'one' && g.id !== 'entree' ? '<span class="muted small">Pick one, tap again to remove</span>' : g.kind === 'many' && amts ? '<span class="muted small">Tap again to remove</span>' : ''}</div>${chipsOnly ? `<div class="chips wrap">${rows}</div>` : rows}</div>`;
+    const chipsOnly = !amts;
+    return `<div class="card ord-sec"><div class="card-head"><h2 class="h3">${g.label}</h2>${g.req ? '' : g.kind === 'one' ? '<span class="muted small">Pick one, tap again to remove</span>' : '<span class="muted small">Tap again to remove</span>'}</div>${chipsOnly ? `<div class="chips wrap">${rows}</div>` : rows}</div>`;
   };
-  const body = `<p class="muted small" style="margin:0 2px 10px">${esc(R.note)}</p>${R.groups.map(sec).join('')}
+  const rests = Object.entries(RESTAURANTS).map(([k, x]) => `<button class="chip ${k === O.r ? 'on' : ''}" data-act="ord-rest" data-r="${k}" aria-pressed="${k === O.r}">${esc(x.name)}</button>`).join('');
+  const presets = R.presets ? `<div class="card ord-sec"><div class="card-head"><h2 class="h3">Start from</h2><span class="muted small">Then change anything</span></div><div class="chips wrap">${R.presets.map(([l], i) => `<button class="chip" data-act="ord-preset" data-i="${i}">${esc(l)}</button>`).join('')}</div></div>` : '';
+  const body = `<div class="chips wrap" style="margin:0 0 10px" role="group" aria-label="Restaurant">${rests}</div><p class="muted small" style="margin:0 2px 10px">${esc(R.note)}</p>${presets}${R.groups.map(sec).join('')}
     <div class="card"><div class="field"><label class="lbl" for="ord-name">Name in your log</label><input class="txt" id="ord-name" value="${esc(O.name)}" autocomplete="off"></div>
     <label class="check-row"><input type="checkbox" id="ord-save" ${O.save ? 'checked' : ''}> Save to My foods for next time</label></div>`;
   const foot = `<div class="ord-foot"><div class="ord-tot"><b class="num">${fmtBig(t.cal)}</b> cal<span class="muted small"> · ${fmtN(t.p, 'p')} g protein · ${fmtN(t.c, 'c')} g carbs · ${fmtN(t.f, 'f')} g fat</span></div><button class="btn primary" data-act="ord-add">Add to ${esc(mealName(O.meal))}</button></div>`;
@@ -2748,7 +2785,8 @@ function renderOrder() {
 }
 function orderPick(g, id) {
   const O = UI.order; const R = RESTAURANTS[O.r]; const grp = R.groups.find(x => x.id === g); const key = g + ':' + id;
-  if (grp.kind === 'one') { const had = O.sel[key]; grp.items.forEach(([i]) => delete O.sel[g + ':' + i]); if (!had || g === 'entree') O.sel[key] = '1'; }
+  const first = grp.amounts ? (grp.amounts === 'lne' ? 'n' : grp.amounts[0][0]) : '1';
+  if (grp.kind === 'one') { const had = O.sel[key]; grp.items.forEach(([i]) => delete O.sel[g + ':' + i]); if (!had || grp.req) O.sel[key] = first; }
   else { if (O.sel[key]) delete O.sel[key]; else O.sel[key] = '1'; }
   renderOrder();
 }
@@ -2760,7 +2798,9 @@ function orderAmt(g, id, a) {
 }
 function orderAdd() {
   const O = UI.order; if (!O) return; const t = orderTotals(O); const name = (O.name || '').trim() || orderName(O);
-  if (!Object.keys(O.sel).some(k => !k.startsWith('entree:'))) { toast('Add something to your order'); return; }
+  const R = RESTAURANTS[O.r]; const reqG = new Set(R.groups.filter(g => g.req).map(g => g.id));
+  if (!Object.keys(O.sel).some(k => !reqG.has(k.split(':')[0]))) { toast('Add something to your order'); return; }
+  S.settings.lastRest = O.r; commit('settings');
   const facts = {}; R_K.forEach(k => { facts[k] = t[k]; });
   const day = O.day || UI.foodDay; if (!S.meals[day]) S.meals[day] = { day, entries: [] };
   S.meals[day].entries.push({ id: uid(), meal: O.meal, name, serv: '1 order', qty: 1, ...facts });
@@ -2768,6 +2808,8 @@ function orderAdd() {
   if (O.save) { S.foods.push({ id: 'f-' + uid(), name, serv: '1 order', ...facts }); commit('foods'); }
   UI.order = null; closeSheet('order'); renderView(); toast(`Added ${name}`);
 }
+function orderRest(r) { const O = UI.order; if (!O || !RESTAURANTS[r] || O.r === r) return; O.r = r; O.sel = { ...RESTAURANTS[r].start }; O.named = false; renderOrder(); }
+function orderPreset(i) { const O = UI.order; const R = RESTAURANTS[O.r]; const p = R.presets && R.presets[i]; if (!p) return; O.sel = { ...p[1] }; O.named = false; renderOrder(); }
 (() => {
   document.addEventListener('input', ev => { if (ev.target.id === 'ord-name' && UI.order) { UI.order.name = ev.target.value; UI.order.named = true; } });
   document.addEventListener('change', ev => { if (ev.target.id === 'ord-save' && UI.order) UI.order.save = ev.target.checked; });
@@ -2929,7 +2971,10 @@ function renderFoodList() {
   if (!F.pick) { const sm = (S.smeals || []).filter(m); if (sm.length) h += `<div class="pick-group">My meals</div>` + sm.map(x => { const t = smealTotals(x); return `<button class="pick-item" data-act="smeal-add" data-id="${x.id}"><div class="pi-main"><div class="pi-name">${esc(x.name)}</div><div class="muted small">${x.items.length} item${x.items.length === 1 ? '' : 's'} · ${fmtBig(t.cal)} cal · ${fmtNum(t.p, 0)} g protein</div></div>${ic('plus')}</button>`; }).join(''); }
   const rec = F.recent.map((f, i) => [f, i]).filter(([f]) => m(f)); if (rec.length) h += `<div class="pick-group">Recent</div>` + rec.map(([f, i]) => item('recent', f, String(i))).join('');
   const mine = S.foods.filter(m).sort((a, b) => a.name.localeCompare(b.name)); if (mine.length) h += `<div class="pick-group">My foods</div>` + mine.map(f => item('mine', f, f.id)).join('');
-  if (/^(chipo|burrito)/i.test(F.q.trim()) && !F.pick) h = `<button class="exrow ord-hit" data-act="food-order"><div style="min-width:0"><div><b>Build a Chipotle order</b></div><div class="muted small">Pick your protein, rice, beans and toppings</div></div><div class="r">${ic('right')}</div></button>` + h;
+  if (!F.pick) { const q = F.q.trim(); const hits = [];
+    if (/^(chipo|burrito)/i.test(q)) hits.push(['chipotle', 'Build a Chipotle order', 'Pick your protein, rice, beans and toppings']);
+    if (/^(shake ?sh|shack|smokeshack)/i.test(q)) hits.push(['shakeshack', 'Build a Shake Shack order', 'Build your burger, fries, shake and drink']);
+    h = hits.map(([r, t, sub]) => `<button class="exrow ord-hit" data-act="food-order" data-r="${r}"><div style="min-width:0"><div><b>${t}</b></div><div class="muted small">${sub}</div></div><div class="r">${ic('right')}</div></button>`).join('') + h; }
   const bi = FOODS.filter(m); if (bi.length) h += `<div class="pick-group">Common foods</div><p class="muted small" style="padding:0 4px">Typical values.</p>` + bi.map(f => item('builtin', f, f.id)).join('');
   F.usda = [];
   if (F.q.trim().length >= 2) {
@@ -3980,10 +4025,12 @@ const ACT = {
   'smeal-add': el => addSavedMeal(el.dataset.id),
   'smeal-manage': el => manageSavedMeal(el.dataset.id),
   'recipe-new': () => { UI.recipeLog = null; openRecipe(null); },
-  'food-order': () => { const F = UI.fadd; const meal = F ? F.meal : mealGuess(), day = F ? F.day : UI.foodDay; closeSheet('foodadd'); openOrder(meal, day); },
+  'food-order': el => { const F = UI.fadd; const meal = F ? F.meal : mealGuess(), day = F ? F.day : UI.foodDay; closeSheet('foodadd'); openOrder(meal, day, el && el.dataset ? el.dataset.r : null); },
   'ord-pick': el => orderPick(el.dataset.g, el.dataset.id),
   'ord-amt': el => orderAmt(el.dataset.g, el.dataset.id, el.dataset.a),
   'ord-add': () => orderAdd(),
+  'ord-rest': el => orderRest(el.dataset.r),
+  'ord-preset': el => orderPreset(+el.dataset.i),
   'ord-cancel': () => { UI.order = null; closeSheet('order'); },
   'food-recipe': () => { const F = UI.fadd; UI.recipeLog = { meal: F ? F.meal : mealGuess(), day: F ? F.day : UI.foodDay }; closeSheet('foodadd'); openRecipe(null); },
   'rc-add': () => openIngredientPicker(),
