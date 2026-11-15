@@ -460,6 +460,8 @@ html:not([data-accent="chalk"]) .tab-ind { background: color-mix(in srgb, var(--
 .wc-day:disabled { cursor: default; }
 .wc-day.sel .wc-col { box-shadow: inset 0 0 0 2px var(--accent); }
 .wc-day.sel span { color: var(--ink); }
+.wc-day.off .wc-col i { background: var(--muted); opacity: .45; }
+.wc-day.off span { font-weight: 400; font-size: .7rem; }
 .ntags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 .ntag { display: inline-flex; align-items: center; gap: 4px; font-size: .75rem; font-weight: 700; padding: 2px 8px 2px 6px; border-radius: 999px; line-height: 1.5; }
 .ntag.good { color: light-dark(#0F6B3E, #5BE3A1); background: light-dark(#E3F6EC, rgb(91 227 161 / .14)); }
@@ -1636,6 +1638,8 @@ function viewMore() {
   <div class="card list">
     ${rowSelect('Weekly workout goal', 'weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(x => [x, `${x} per week`]))}
     ${rowSeg('Week starts on', 'weekStart', [[0, 'Sun'], [1, 'Mon']])}
+    <div class="row"><div class="row-l">Calorie off days<div class="small muted">Still logged, but not counted in your weekly budget</div></div></div>
+    <div class="plates-pick" role="group" aria-label="Calorie off days">${Array.from({ length: 7 }, (_, i) => (i + s.weekStart) % 7).map(d => { const on = (s.offDays || []).includes(d); return `<button class="chip ${on ? 'on' : ''}" data-act="offday-toggle" data-val="${d}" aria-pressed="${on}">${new Date(2023, 0, 1 + d).toLocaleDateString(undefined, { weekday: 'short' })}</button>`; }).join('')}</div>
     ${rowSeg('1RM formula', 'e1rm', [['epley', 'Epley'], ['brzycki', 'Brzycki']])}
   </div>
   <h2 class="sec">Look</h2>
@@ -1667,7 +1671,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 36</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 37</p>`;
 }
 
 // =====================================================================
@@ -2815,37 +2819,46 @@ function orderPreset(i) { const O = UI.order; const R = RESTAURANTS[O.r]; const 
   document.addEventListener('change', ev => { if (ev.target.id === 'ord-save' && UI.order) UI.order.save = ev.target.checked; });
 })();
 // Weekly calorie budget: daily goal × 7. Days with nothing logged count as on target.
+// Off days (settings.offDays, 0 = Sunday): calories still log, but they don't count toward the weekly budget.
+const offSet = () => new Set(S.settings.offDays || []);
+const isOffDay = d => offSet().has(new Date(d + 'T12:00').getDay());
 function weekCalCard(day, calG) {
   if (!calG) return '';
   const today = dayKey(Date.now()); const ws = dayKey(startOfWeek(new Date(day + 'T12:00').getTime()));
-  const days = Array.from({ length: 7 }, (_, i) => shiftDay(ws, i)); const budget = calG * 7;
-  const info = days.map(d => { const es = dayEntries(d); return { d, cal: sumN(es).cal || 0, logged: es.length > 0, past: d < today, isToday: d === today, future: d > today }; });
-  const counted = x => x.logged ? x.cal : calG;
-  const before = info.filter(x => x.past).reduce((a, x) => a + counted(x), 0);
-  const unloggedPast = info.some(x => x.past && !x.logged);
-  const cur = info.some(x => x.isToday);
-  const todayCal = cur ? info.find(x => x.isToday).cal : 0;
-  const used = cur ? before + todayCal : info.reduce((a, x) => a + (x.future ? 0 : counted(x)), 0);
-  const left = budget - used; const pct = Math.min(100, used / budget * 100);
-  const daysLeft = info.filter(x => x.isToday || x.future).length;
-  const pace = info.filter(x => x.past).reduce((a, x) => a + counted(x) - calG, 0);
+  const days = Array.from({ length: 7 }, (_, i) => shiftDay(ws, i));
+  const info = days.map(d => { const es = dayEntries(d); return { d, cal: sumN(es).cal || 0, logged: es.length > 0, past: d < today, isToday: d === today, future: d > today, off: isOffDay(d) }; });
+  const on = info.filter(x => !x.off); const budget = calG * on.length;
   const L = d => new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'narrow' });
-  const strip = info.map(x => { const h = x.logged ? Math.min(1.25, x.cal / calG) : 0; const over = x.cal > calG * 1.05;
-    return `<button class="wc-day ${x.isToday ? 'today' : ''} ${x.future ? 'future' : ''} ${UI.wcSel === x.d ? 'sel' : ''}" data-act="wc-day" data-d="${x.d}" ${x.future ? 'disabled' : ''} aria-pressed="${UI.wcSel === x.d}" aria-label="${esc(dayLabel(x.d))}: ${x.logged ? fmtBig(x.cal) + ' calories' : 'nothing logged'}"><div class="wc-col"><i class="${over ? 'over' : ''}" style="height:${(h / 1.25 * 100).toFixed(0)}%"></i><b style="bottom:${(1 / 1.25 * 100).toFixed(0)}%"></b></div><span>${L(x.d)}</span></button>`; }).join('');
+  const offNames = info.filter(x => x.off).map(x => new Date(x.d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short' }));
+  const head = (title) => `<div class="card-head"><h2 class="h3">${title}</h2><span class="muted small">${fmtBig(calG)} a day × ${on.length}${offNames.length ? ` · ${offNames.join(', ')} off` : ''}</span></div>`;
+  const title = info.some(x => x.isToday) ? 'This week' : 'Week of ' + esc(new Date(ws + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+  if (!on.length) return `<div class="card weekcal">${head(title)}<p class="muted">Every day is an off day. Turn some back on in Options to get a weekly budget.</p></div>`;
+  const counted = x => x.logged ? x.cal : calG;
+  const before = on.filter(x => x.past).reduce((a, x) => a + counted(x), 0);
+  const unloggedPast = on.some(x => x.past && !x.logged);
+  const cur = info.some(x => x.isToday); const tI = info.find(x => x.isToday);
+  const used = cur ? before + (tI.off ? 0 : tI.cal) : on.reduce((a, x) => a + (x.future ? 0 : counted(x)), 0);
+  const left = budget - used; const pct = Math.min(100, used / budget * 100);
+  const pace = on.filter(x => x.past).reduce((a, x) => a + counted(x) - calG, 0);
+  const strip = info.map(x => { const h = x.logged ? Math.min(1.25, x.cal / calG) : 0; const over = !x.off && x.cal > calG * 1.05;
+    return `<button class="wc-day ${x.isToday ? 'today' : ''} ${x.future ? 'future' : ''} ${x.off ? 'off' : ''} ${UI.wcSel === x.d ? 'sel' : ''}" data-act="wc-day" data-d="${x.d}" ${x.future ? 'disabled' : ''} aria-pressed="${UI.wcSel === x.d}" aria-label="${esc(dayLabel(x.d))}${x.off ? ', off day' : ''}: ${x.logged ? fmtBig(x.cal) + ' calories' : 'nothing logged'}"><div class="wc-col"><i class="${over ? 'over' : ''}" style="height:${(h / 1.25 * 100).toFixed(0)}%"></i>${x.off ? '' : `<b style="bottom:${(1 / 1.25 * 100).toFixed(0)}%"></b>`}</div><span>${x.off ? 'off' : L(x.d)}</span></button>`; }).join('');
   const selI = info.find(x => x.d === UI.wcSel);
   const detail = selI ? (() => { const es = dayEntries(selI.d); const tt = sumN(es); const diff = (tt.cal || 0) - calG;
-    return `<div class="wc-detail"><div><b>${esc(dayLabel(selI.d))}</b><div class="muted small">${selI.logged ? `${fmtBig(tt.cal || 0)} cal · ${fmtN(tt.p || 0, 'p')} g protein · ${Math.abs(diff) < calG * 0.03 ? 'right on goal' : diff > 0 ? fmtBig(diff) + ' over goal' : fmtBig(-diff) + ' under goal'}` : 'Nothing logged this day'}</div></div>${selI.d !== day ? `<button class="link" data-act="wc-open" data-d="${selI.d}">Open day</button>` : ''}</div>`; })() : '';
+    const line = !selI.logged ? 'Nothing logged this day' : `${fmtBig(tt.cal || 0)} cal · ${fmtN(tt.p || 0, 'p')} g protein · ${selI.off ? 'off day, not counted' : Math.abs(diff) < calG * 0.03 ? 'right on goal' : diff > 0 ? fmtBig(diff) + ' over goal' : fmtBig(-diff) + ' under goal'}`;
+    return `<div class="wc-detail"><div><b>${esc(dayLabel(selI.d))}</b><div class="muted small">${line}</div></div>${selI.d !== day ? `<button class="link" data-act="wc-open" data-d="${selI.d}">Open day</button>` : ''}</div>`; })() : '';
+  const paceTxt = Math.abs(pace) < calG * 0.03 ? 'Right on pace so far.' : pace > 0 ? `${fmtBig(pace)} over for the week so far.` : `${fmtBig(-pace)} under for the week so far.`;
   let msg;
   if (cur) {
-    const target = Math.round((budget - before) / daysLeft);
-    msg = `<div class="wc-target"><span class="muted">Today's target</span> <b class="num">${fmtBig(Math.max(0, target))} cal</b></div><div class="muted small">${daysLeft > 1 ? `Spread over the ${daysLeft} days left, today included. ` : 'Last day of the week. '}${Math.abs(pace) < calG * 0.03 ? 'Right on pace so far.' : pace > 0 ? `${fmtBig(pace)} over for the week so far.` : `${fmtBig(-pace)} under for the week so far.`}</div>`;
+    const rest = on.filter(x => x.isToday || x.future);
+    if (tI.off) { const nx = on.filter(x => x.future); msg = `<div class="wc-target"><span class="muted">Today</span> <b>Off day</b></div><div class="muted small">${nx.length ? `Today doesn't count. Your budget picks back up at ${fmtBig(Math.max(0, Math.round((budget - before) / nx.length)))} a day. ` : "Today doesn't count, and it's the last day of the week. "}${paceTxt}</div>`; }
+    else { const target = Math.round((budget - before) / rest.length); msg = `<div class="wc-target"><span class="muted">Today's target</span> <b class="num">${fmtBig(Math.max(0, target))} cal</b></div><div class="muted small">${rest.length > 1 ? `Spread over the ${rest.length} counted days left, today included. ` : 'Last counted day of the week. '}${paceTxt}</div>`; }
   } else if (days[0] > today) msg = `<div class="muted small">This week hasn't started yet.</div>`;
-  else if (!info.some(x => x.logged)) return `<div class="card weekcal"><div class="card-head"><h2 class="h3">Week of ${esc(new Date(ws + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</h2></div><p class="muted">Nothing logged that week.</p></div>`;
-  else { const avg = Math.round(used / 7); msg = `<div class="muted small">Averaged ${fmtBig(avg)} cal a day · ${left >= 0 ? fmtBig(left) + ' under' : fmtBig(-left) + ' over'} budget.</div>`; }
-  return `<div class="card weekcal"><div class="card-head"><h2 class="h3">${cur ? 'This week' : 'Week of ' + esc(new Date(ws + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</h2><span class="muted small">${fmtBig(calG)} a day × 7</span></div>
+  else if (!info.some(x => x.logged)) return `<div class="card weekcal">${head(title)}<p class="muted">Nothing logged that week.</p></div>`;
+  else { const avg = Math.round(used / on.length); msg = `<div class="muted small">Averaged ${fmtBig(avg)} cal on counted days · ${left >= 0 ? fmtBig(left) + ' under' : fmtBig(-left) + ' over'} budget.</div>`; }
+  return `<div class="card weekcal">${head(title)}
     <div class="wc-top"><div><span class="num wc-big">${fmtBig(used)}</span> <span class="muted">/ ${fmtBig(budget)} cal</span></div><div class="muted small">${left >= 0 ? `${fmtBig(left)} left` : `${fmtBig(-left)} over`}</div></div>
     <div class="goalbar"><i style="width:${pct.toFixed(1)}%"></i></div>
-    <div class="wc-strip">${strip}</div>${detail}${msg}${unloggedPast ? `<div class="muted small" style="margin-top:4px">Days you didn't log count as on target.</div>` : ''}</div>`;
+    <div class="wc-strip">${strip}</div>${detail}${msg}${unloggedPast ? `<div class="muted small" style="margin-top:4px">Days you didn't log count as on target.</div>` : ''}${offNames.length ? '' : `<div class="muted small" style="margin-top:4px">Some days don't matter as much? <button class="link" data-act="tab" data-tab="more">Set off days in Options</button></div>`}</div>`;
 }
 function sumN(entries) { const t = {}; NUTR.forEach(n => { t[n.k] = 0; }); for (const e of entries) { const q = e.qty || 1; NUTR.forEach(n => { if (e[n.k] != null) t[n.k] += e[n.k] * q; }); } return t; }
 function mealGuess() { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 10.5 ? 'b' : h < 15 ? 'l' : h < 21 ? 'd' : 's'; }
@@ -2921,7 +2934,7 @@ function viewFood() {
   const day = UI.foodDay, ents = dayEntries(day), tot = sumN(ents), G = S.settings.nutriGoals || {}, show = S.settings.nutriShow || DEFAULT_SETTINGS.nutriShow;
   const isToday = day === dayKey(Date.now()); const calG = G.cal;
   let h = `<div class="card daynav"><button class="icon-btn" data-act="food-prev" aria-label="Previous day">${ic('left')}</button><div style="text-align:center"><div class="h3">${esc(dayLabel(day))}</div>${isToday ? `<div class="muted small">${ents.length} item${ents.length === 1 ? '' : 's'} logged</div>` : `<button class="link" data-act="food-today">Back to today</button>`}</div><button class="icon-btn" data-act="food-next" aria-label="Next day" ${isToday ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button></div>`;
-  h += foodSummaryCard(tot, G, show);
+  h += foodSummaryCard(tot, G, show, day);
   h += waterCard(day);
   for (const [m, label] of MEALS) {
     const me = ents.filter(e => e.meal === m); const mc = me.reduce((s, e) => s + (e.cal || 0) * (e.qty || 1), 0);
@@ -3382,11 +3395,11 @@ function ringsSVG(tot, G, size = 132) {
   });
   return `<svg class="rings" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${h}</svg>`;
 }
-function foodSummaryCard(tot, G, show) {
+function foodSummaryCard(tot, G, show, day) {
   const calG = G.cal; let h = '<div class="card">';
   if (calG) {
     h += `<div class="ring-wrap">${ringsSVG(tot, G)}<div class="ring-legend">${RING_KEYS.map(([k, l, op]) => `<div class="rl"><i style="opacity:${op};background:var(--m-${k})"></i><span>${l}</span><b>${fmtN(tot[k], k)}${G[k] ? `<span class="muted" style="font-weight:400"> / ${fmtN(G[k], k)}</span>` : ''}${k === 'cal' ? '' : ' g'}</b></div>`).join('')}</div></div>
-    <p class="ring-left"><b>${tot.cal <= calG ? fmtBig(calG - tot.cal) + ' calories left' : fmtBig(tot.cal - calG) + ' calories over'}</b>${G.p ? `<span class="muted"> · ${Math.max(0, Math.round(G.p - tot.p))} g protein to go</span>` : ''}</p>`;
+    <p class="ring-left">${day && isOffDay(day) ? `<b>Off day</b><span class="muted"> · doesn't count toward your week</span>` : `<b>${tot.cal <= calG ? fmtBig(calG - tot.cal) + ' calories left' : fmtBig(tot.cal - calG) + ' calories over'}</b>`}${G.p ? `<span class="muted"> · ${Math.max(0, Math.round(G.p - tot.p))} g protein to go</span>` : ''}</p>`;
   } else h += `<div class="cal-sum"><div><span class="big">${fmtBig(tot.cal)}</span> <span class="muted">calories</span></div></div>`;
   const rest = show.filter(k => NK[k] && k !== 'cal' && !(calG && ['p', 'c', 'f'].includes(k)));
   if (rest.length) h += `<div class="nut-grid">${rest.map(k => { const n = NK[k], g = G[k]; return `<div><div class="nut-top"><span>${n.l}</span><b>${fmtN(tot[k], k)}${g ? `<span class="muted" style="font-weight:400"> / ${fmtN(g, k)}</span>` : ''} ${n.u}</b></div>${g ? `<div class="goalbar thin"><i style="width:${clamp(tot[k] / g * 100, 0, 100)}%"></i></div>` : ''}</div>`; }).join('')}</div>`;
@@ -4006,6 +4019,7 @@ const ACT = {
     S.settings[k] = v; if (k === 'accent') S.settings.tint = v !== 'chalk'; commit('settings'); applySettings(); renderAll();
   },
   'toggle': el => { const k = el.dataset.key; S.settings[k] = !S.settings[k]; commit('settings'); el.setAttribute('aria-checked', String(S.settings[k])); if (k === 'tint') applySettings(); if (k === 'restSound' && S.settings[k]) { unlockAudio(); beep(); } if (sheetEl('active')) renderEditor('active'); },
+  'offday-toggle': el => { const d = Number(el.dataset.val); const a = (S.settings.offDays || []).slice(); const i = a.indexOf(d); if (i >= 0) a.splice(i, 1); else a.push(d); S.settings.offDays = a.sort(); commit('settings'); renderView(); },
   'plate-toggle': el => { const p = Number(el.dataset.val); const key = U() === 'lb' ? 'platesLb' : 'platesKg'; const a = S.settings[key].slice(); const i = a.indexOf(p); if (i >= 0) a.splice(i, 1); else a.push(p); S.settings[key] = a.sort((x, y) => y - x); commit('settings'); renderView(); },
   'tool-plates': () => openPlates(null),
   'tool-1rm': () => open1RM(),
