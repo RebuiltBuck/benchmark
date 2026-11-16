@@ -334,6 +334,8 @@ button.row { width: 100%; text-align: left; }
 .pick-mark { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; flex: none; color: transparent; }
 .pick-item[aria-pressed="true"] .pick-mark { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .pick-item .ic { width: 1rem; height: 1rem; stroke-width: 3; }
+.pick-fold .pi-name { font-weight: 700; }
+.pick-fold.open { background: var(--surface-2); }
 .pick-group { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--ink); padding: 16px 4px 4px; }
 .foot-row { display: flex; gap: 10px; }
 .foot-row .btn { flex: 1; }
@@ -1675,7 +1677,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 38</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 39</p>`;
 }
 
 // =====================================================================
@@ -2916,6 +2918,7 @@ function dayLabel(day) { const t = dayKey(Date.now()); return day === t ? 'Today
 function qtyLabel(e) { const q = e.qty || 1; if (e.serv === '1 g') return `${fmtNum(q, 0)} g`; return q === 1 ? (e.serv || '1 serving') : `${fmtNum(q, 2)} × ${e.serv || 'serving'}`; }
 // ---------- USDA common foods (FoodData Central SR Legacy, public domain) ----------
 // line: name|group|cal|p|c|f|sug|fib|na|satf|chol|portions "label:grams;..."|common name — values per 100 g
+// group C = everyday meals from USDA FNDDS 2019-2020 (sandwiches, pasta, salads...); first portion is the usual serving
 const USDA_K = ['cal', 'p', 'c', 'f', 'sug', 'fib', 'na', 'satf', 'chol'];
 let USDA = null, usdaP = null;
 // nudge the everyday version of a food to the top
@@ -2923,7 +2926,7 @@ const USDA_PREF = { pepper: /^peppers, sweet, (red|green), raw/, egg: /^egg, who
 const USDA_SYN = { bell: ['sweet', 'bell'], oatmeal: ['oats', 'oatmeal'], fries: ['french', 'fries'], ketchup: ['catsup', 'ketchup'], soda: ['carbonated', 'soda', 'cola'], steak: ['steak', 'beef'], scallion: ['onions', 'scallion'], scallions: ['onions', 'scallion'], garbanzo: ['chickpeas', 'garbanzo'], hotdog: ['frankfurter'], pb: ['peanut'], oj: ['orange'], eggs: ['egg'], potatoes: ['potato'], tomatoes: ['tomato'] };
 const usdaWords = s => s.toLowerCase().replace(/[^a-z0-9%]+/g, ' ').trim().split(' ').filter(Boolean);
 function usdaParse(txt) {
-  return txt.trim().split('\n').map((l, i) => { const a = l.split('|'); return { i, name: a[0], g: a[1], v: a.slice(2, 11), ps: a[11], com: a[12] || '', words: usdaWords(a[0] + ' ' + (a[12] || '')), first: usdaWords(a[0])[0] || '' }; });
+  return txt.trim().split('\n').map((l, i) => { const a = l.split('|'); return { i, name: a[0], g: a[1], v: a.slice(2, 11), ps: a[11], com: a[12] || '', words: usdaWords(a[0].replace(', no dressing', '') + ' ' + (a[12] || '')), first: usdaWords(a[0])[0] || '' }; });
 }
 function usdaLoad() {
   if (USDA) return Promise.resolve(USDA);
@@ -2946,7 +2949,7 @@ const usdaRound = (k, v) => String(k === 'cal' || k === 'na' || k === 'chol' ? M
 const servLabel = p => /^\d[\d./ ]* ?g$/.test(p.label) ? p.label : `${p.label} (${fmtNum(p.g, 0)} g)`;
 function usdaFood(r) {
   const per100 = {}; USDA_K.forEach((k, j) => { const x = parseFloat(r.v[j]); if (!isNaN(x)) per100[k] = x; });
-  const portions = usdaPortions(r); const d = usdaDefault(portions, r.name); const o = { id: 'u-' + r.i, name: r.name, serv: servLabel(d), per100, portions, usda: true };
+  const portions = usdaPortions(r); const d = r.g === 'C' ? portions[0] : usdaDefault(portions, r.name); const o = { id: 'u-' + r.i, name: r.name, serv: servLabel(d), per100, portions, usda: true, common: r.g === 'C' };
   for (const k in per100) o[k] = +usdaRound(k, per100[k] * d.g / 100);
   return o;
 }
@@ -2967,6 +2970,10 @@ function usdaSearch(q, max = 40) {
     if (/(^|, )raw\b/.test(ln) && /^(09|11)/.test(r.g)) sc += 3;
     if (/\bcooked\b/.test(ln)) sc += 1;
     if (r.g === '21' || r.g === '36') sc -= 3;
+    if (r.g === 'C') { // everyday meals: rank by how well the name itself matches, then by list order
+      const nw = usdaWords(r.name), head = usdaWords(r.name.split(',')[0].replace(/\(.*?\)/g, '').split(/ (with|and) /)[0]).pop() || '';
+      sc = 30 + (alts.every(al => al.some(a => nw.some(w => w.startsWith(a)))) ? 6 : 0) + (alts.some(al => al.some(a => head === a || head === a + 's' || a === head + 's')) ? 4 : 0) - r.i * 0.01;
+      out.push([sc, r]); continue; }
     sc -= r.name.split(',').length * 0.8 + r.name.length / 60;
     out.push([sc, r]);
   }
@@ -3038,11 +3045,24 @@ function renderFoodList() {
     if (/^(shake ?sh|shack|smokeshack)/i.test(q)) hits.push(['shakeshack', 'Build a Shake Shack order', 'Build your burger, fries, shake and drink']);
     if (/^(jet|detroit|8 ?corner|pizza)/i.test(q)) hits.push(['jets', "Build a Jet's Pizza order", 'Pick your crust, slices, toppings and sides']);
     h = hits.map(([r, t, sub]) => `<button class="exrow ord-hit" data-act="food-order" data-r="${r}"><div style="min-width:0"><div><b>${t}</b></div><div class="muted small">${sub}</div></div><div class="r">${ic('right')}</div></button>`).join('') + h; }
-  const bi = FOODS.filter(m); if (bi.length) h += `<div class="pick-group">Common foods</div><p class="muted small" style="padding:0 4px">Typical values.</p>` + bi.map(f => item('builtin', f, f.id)).join('');
+  const bi = FOODS.filter(m); const biH = bi.map(f => item('builtin', f, f.id)).join(''); const usdaOn = F.q.trim().length >= 2 && USDA;
+  if (bi.length && !usdaOn) h += `<div class="pick-group">Common foods</div>` + biH;
   F.usda = [];
   if (F.q.trim().length >= 2) {
     if (!USDA) { usdaLoad().then(() => { if (UI.fadd === F) renderFoodList(); }).catch(() => {}); h += `<div class="pick-group">USDA foods</div><p class="muted small" style="padding:0 4px">Loading…</p>`; }
-    else { F.usda = usdaSearch(F.q); if (F.usda.length) h += `<div class="pick-group">USDA foods</div><p class="muted small" style="padding:0 4px">From the USDA food database. Pick the amount next.</p>` + F.usda.map(f => item('usda', f, f.id)).join(''); }
+    else { F.usda = usdaSearch(F.q, 90); const com = F.usda.filter(f => f.common), rest = F.usda.filter(f => !f.common);
+      if (com.length || bi.length) h += `<div class="pick-group">Common foods</div>` + biH + com.map(f => item('usda', f, f.id)).join('');
+      if (rest.length) {
+        // look-alike results (20 salad dressings, 9 oils) fold into one row you can open
+        const groups = new Map(); rest.forEach(f => { const k = f.name.split(',')[0].trim(); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(f); });
+        const one = groups.size === 1; F.open = F.open || new Set(); let shown = 0, rows = '';
+        for (const [k, fs] of groups) {
+          if (shown >= 40) break;
+          if (fs.length < 3 || one || F.open.has(k)) { const list = fs.slice(0, one ? 40 : 25); rows += (fs.length >= 3 && !one ? `<button class="pick-item pick-fold open" data-act="usda-fold" data-k="${esc(k)}" aria-expanded="true"><div class="pi-main"><div class="pi-name">${esc(k)}</div><div class="muted small">${fs.length} kinds</div></div>${ic('x')}</button>` : '') + list.map(f => item('usda', f, f.id)).join(''); shown += list.length; }
+          else { rows += `<button class="pick-item pick-fold" data-act="usda-fold" data-k="${esc(k)}" aria-expanded="false"><div class="pi-main"><div class="pi-name">${esc(k)}</div><div class="muted small">${fs.length} kinds · ${fmtBig(Math.min(...fs.map(f => f.cal || 0)))}–${fmtBig(Math.max(...fs.map(f => f.cal || 0)))} cal</div></div>${ic('right')}</button>`; shown++; }
+        }
+        h += `<div class="pick-group">${com.length ? 'More foods' : 'Foods'}</div><p class="muted small" style="padding:0 4px">From the USDA food database. Pick the amount next.</p>` + rows;
+      } }
   }
   if (!h) h = `<div class="empty-ex">Nothing matches “${esc(F.q)}”.<div style="margin-top:12px"><button class="btn soft" data-act="food-new">${ic('plus')} Enter “${esc(F.q)}” from its label</button></div></div>`;
   el.innerHTML = h;
@@ -4123,6 +4143,7 @@ const ACT = {
   'food-add': el => openFoodAdd(el.dataset.meal),
   'food-add-now': () => { UI.foodDay = dayKey(Date.now()); openFoodAdd(mealGuess()); },
   'food-edit': el => { const e = dayEntries(UI.foodDay).find(x => x.id === el.dataset.id); if (e) openFoodForm({ mode: 'entry', base: e, meal: e.meal, day: UI.foodDay }); },
+  'usda-fold': el => { const F = UI.fadd; if (!F) return; F.open = F.open || new Set(); const k = el.dataset.k; if (F.open.has(k)) F.open.delete(k); else F.open.add(k); renderFoodList(); },
   'food-pick': el => {
     const F = UI.fadd; if (!F) return; const src = el.dataset.src, id = el.dataset.id;
     const base = src === 'builtin' ? FOODS.find(f => f.id === id) : src === 'mine' ? S.foods.find(f => f.id === id) : src === 'usda' ? (F.usda || []).find(f => f.id === id) : F.recent[+id];
@@ -4172,7 +4193,7 @@ document.addEventListener('input', ev => {
     const c = ctxInfo(t); const w = draftOf(c.ctx); if (!w) return; w.exercises[c.ei].note = t.value; touch(c.ctx);
   } else if (t.id === 'pick-search') { if (UI.pick) { UI.pick.q = t.value; renderPick(); } }
   else if (t.id === 'lib-search') { if (UI.lib) { UI.lib.q = t.value; renderLib(); } }
-  else if (t.id === 'food-search') { if (UI.fadd) { UI.fadd.q = t.value; renderFoodList(); } }
+  else if (t.id === 'food-search') { if (UI.fadd) { UI.fadd.q = t.value; UI.fadd.open = null; renderFoodList(); } }
   else if (t.id === 'g-search') renderSearch(t.value);
   else if (t.id === 'su-goal') { if (UI.setup) UI.setup.goalText = t.value; }
   else if (t.id === 'rc-name') { if (UI.recipe) UI.recipe.name = t.value; }
