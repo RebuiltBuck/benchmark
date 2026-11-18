@@ -1677,7 +1677,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 39</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 40</p>`;
 }
 
 // =====================================================================
@@ -2926,7 +2926,7 @@ const USDA_PREF = { pepper: /^peppers, sweet, (red|green), raw/, egg: /^egg, who
 const USDA_SYN = { bell: ['sweet', 'bell'], oatmeal: ['oats', 'oatmeal'], fries: ['french', 'fries'], ketchup: ['catsup', 'ketchup'], soda: ['carbonated', 'soda', 'cola'], steak: ['steak', 'beef'], scallion: ['onions', 'scallion'], scallions: ['onions', 'scallion'], garbanzo: ['chickpeas', 'garbanzo'], hotdog: ['frankfurter'], pb: ['peanut'], oj: ['orange'], eggs: ['egg'], potatoes: ['potato'], tomatoes: ['tomato'] };
 const usdaWords = s => s.toLowerCase().replace(/[^a-z0-9%]+/g, ' ').trim().split(' ').filter(Boolean);
 function usdaParse(txt) {
-  return txt.trim().split('\n').map((l, i) => { const a = l.split('|'); return { i, name: a[0], g: a[1], v: a.slice(2, 11), ps: a[11], com: a[12] || '', words: usdaWords(a[0].replace(', no dressing', '') + ' ' + (a[12] || '')), first: usdaWords(a[0])[0] || '' }; });
+  return txt.trim().split('\n').map((l, i) => { const a = l.split('|'); return { i, name: a[0], g: a[1], v: a.slice(2, 11), ps: a[11], com: a[12] || '', full: a[13] || '', words: usdaWords(a[0].replace(', no dressing', '') + ' ' + (a[12] || '') + ' ' + (a[13] || '')), first: usdaWords(a[0])[0] || '' }; });
 }
 function usdaLoad() {
   if (USDA) return Promise.resolve(USDA);
@@ -2949,10 +2949,13 @@ const usdaRound = (k, v) => String(k === 'cal' || k === 'na' || k === 'chol' ? M
 const servLabel = p => /^\d[\d./ ]* ?g$/.test(p.label) ? p.label : `${p.label} (${fmtNum(p.g, 0)} g)`;
 function usdaFood(r) {
   const per100 = {}; USDA_K.forEach((k, j) => { const x = parseFloat(r.v[j]); if (!isNaN(x)) per100[k] = x; });
-  const portions = usdaPortions(r); const d = r.g === 'C' ? portions[0] : usdaDefault(portions, r.name); const o = { id: 'u-' + r.i, name: r.name, serv: servLabel(d), per100, portions, usda: true, common: r.g === 'C' };
+  const portions = usdaPortions(r); const d = r.g === 'C' ? portions[0] : usdaDefault(portions, r.name); const o = { id: 'u-' + r.i, name: r.name, serv: servLabel(d), per100, portions, usda: true, common: r.g === 'C', full: r.full };
   for (const k in per100) o[k] = +usdaRound(k, per100[k] * d.g / 100);
   return o;
 }
+// fold label: "Cereals ready-to-eat" -> "Cereal", "McDONALD'S" -> "McDonald's"
+const FOLD_NAMES = { 'Cereals ready-to-eat': 'Cereal', 'Cereals': 'Hot cereal', 'Fast foods': 'Fast food', 'Fast Foods': 'Fast food', 'Beverages': 'Drinks', 'Alcoholic beverage': 'Alcohol', 'Alcoholic Beverage': 'Alcohol', 'Ice creams': 'Ice cream', 'Puddings': 'Pudding', 'Snacks': 'Snacks', 'Candies': 'Candy', 'Spices': 'Spices', 'Restaurant': 'Restaurant meals', 'Game meat': 'Game meat', 'Frankfurter': 'Hot dogs', 'Mollusks': 'Shellfish', 'Crustaceans': 'Shellfish' };
+function foldLabel(k) { if (FOLD_NAMES[k]) return FOLD_NAMES[k]; if (/^(Mc)?[A-Z][A-Z0-9'&.\- ]+$/.test(k)) return k.toLowerCase().replace(/(^|[\s\-])(\w)/g, (m, a, b) => a + b.toUpperCase()).replace(/^Mc(\w)/, (m, c) => 'Mc' + c.toUpperCase()).replace(/'S\b/, "'s"); return k; }
 function usdaSearch(q, max = 40) {
   if (!USDA) return [];
   const qs = usdaWords(q.replace(/hot ?dogs?/gi, 'frankfurter')); if (!qs.length) return [];
@@ -2966,12 +2969,12 @@ function usdaSearch(q, max = 40) {
     }
     if (!ok) continue;
     if (alts[0].some(a => r.first === a || r.first === a + 's' || r.first === a + 'es')) sc += 10; else if (alts[0].some(a => r.first.startsWith(a))) sc += 5;
-    const ln = r.name.toLowerCase(); if (alts.some(al => al.some(a => USDA_PREF[a] && USDA_PREF[a].test(ln)))) sc += 14;
+    const ln = (r.full || r.name).toLowerCase(); if (alts.some(al => al.some(a => USDA_PREF[a] && USDA_PREF[a].test(ln)))) sc += 14;
     if (/(^|, )raw\b/.test(ln) && /^(09|11)/.test(r.g)) sc += 3;
     if (/\bcooked\b/.test(ln)) sc += 1;
     if (r.g === '21' || r.g === '36') sc -= 3;
     if (r.g === 'C') { // everyday meals: rank by how well the name itself matches, then by list order
-      const nw = usdaWords(r.name), head = usdaWords(r.name.split(',')[0].replace(/\(.*?\)/g, '').split(/ (with|and) /)[0]).pop() || '';
+      const nw = usdaWords(r.name), head = usdaWords(r.name.split(',')[0].replace(/\(.*?\)/g, '').split(' with ')[0]).pop() || '';
       sc = 30 + (alts.every(al => al.some(a => nw.some(w => w.startsWith(a)))) ? 6 : 0) + (alts.some(al => al.some(a => head === a || head === a + 's' || a === head + 's')) ? 4 : 0) - r.i * 0.01;
       out.push([sc, r]); continue; }
     sc -= r.name.split(',').length * 0.8 + r.name.length / 60;
@@ -3050,18 +3053,19 @@ function renderFoodList() {
   F.usda = [];
   if (F.q.trim().length >= 2) {
     if (!USDA) { usdaLoad().then(() => { if (UI.fadd === F) renderFoodList(); }).catch(() => {}); h += `<div class="pick-group">USDA foods</div><p class="muted small" style="padding:0 4px">Loading…</p>`; }
-    else { F.usda = usdaSearch(F.q, 90); const com = F.usda.filter(f => f.common), rest = F.usda.filter(f => !f.common);
+    else { F.usda = usdaSearch(F.q, 90); const biN = new Set(FOODS.map(f => f.name.toLowerCase())); const com = F.usda.filter(f => f.common && !biN.has(f.name.toLowerCase())), rest = F.usda.filter(f => !f.common);
       if (com.length || bi.length) h += `<div class="pick-group">Common foods</div>` + biH + com.map(f => item('usda', f, f.id)).join('');
       if (rest.length) {
         // look-alike results (20 salad dressings, 9 oils) fold into one row you can open
-        const groups = new Map(); rest.forEach(f => { const k = f.name.split(',')[0].trim(); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(f); });
-        const one = groups.size === 1; F.open = F.open || new Set(); let shown = 0, rows = '';
+        const groups = new Map(); rest.forEach(f => { const k = foldLabel((f.full || f.name).split(',')[0].trim()); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(f); });
+        const qw = usdaWords(F.q); const one = groups.size === 1; F.open = F.open || new Set(); let shown = 0, rows = '';
         for (const [k, fs] of groups) {
           if (shown >= 40) break;
-          if (fs.length < 3 || one || F.open.has(k)) { const list = fs.slice(0, one ? 40 : 25); rows += (fs.length >= 3 && !one ? `<button class="pick-item pick-fold open" data-act="usda-fold" data-k="${esc(k)}" aria-expanded="true"><div class="pi-main"><div class="pi-name">${esc(k)}</div><div class="muted small">${fs.length} kinds</div></div>${ic('x')}</button>` : '') + list.map(f => item('usda', f, f.id)).join(''); shown += list.length; }
+          const aimed = qw.length > 1 && usdaWords(k).every(w => qw.some(q => q.startsWith(w.replace(/s$/, ''))));  // "ground beef" opens the Beef group
+          if (fs.length < 3 || one || aimed || F.open.has(k)) { const list = fs.slice(0, one ? 40 : 25); rows += (fs.length >= 3 && !one && !aimed ? `<button class="pick-item pick-fold open" data-act="usda-fold" data-k="${esc(k)}" aria-expanded="true"><div class="pi-main"><div class="pi-name">${esc(k)}</div><div class="muted small">${fs.length} kinds</div></div>${ic('x')}</button>` : '') + list.map(f => item('usda', f, f.id)).join(''); shown += list.length; }
           else { rows += `<button class="pick-item pick-fold" data-act="usda-fold" data-k="${esc(k)}" aria-expanded="false"><div class="pi-main"><div class="pi-name">${esc(k)}</div><div class="muted small">${fs.length} kinds · ${fmtBig(Math.min(...fs.map(f => f.cal || 0)))}–${fmtBig(Math.max(...fs.map(f => f.cal || 0)))} cal</div></div>${ic('right')}</button>`; shown++; }
         }
-        h += `<div class="pick-group">${com.length ? 'More foods' : 'Foods'}</div><p class="muted small" style="padding:0 4px">From the USDA food database. Pick the amount next.</p>` + rows;
+        h += `<div class="pick-group">${com.length || bi.length ? 'More foods' : 'Foods'}</div><p class="muted small" style="padding:0 4px">From the USDA food database. Pick the amount next.</p>` + rows;
       } }
   }
   if (!h) h = `<div class="empty-ex">Nothing matches “${esc(F.q)}”.<div style="margin-top:12px"><button class="btn soft" data-act="food-new">${ic('plus')} Enter “${esc(F.q)}” from its label</button></div></div>`;
@@ -3077,7 +3081,7 @@ function openFoodForm({ mode, base = {}, meal, day, isMine = false, fresh = fals
   const d = openDialog(`<div class="dlg-title">${esc(title)}</div>
     ${scanned ? `<p class="small" style="padding:10px 12px;border-radius:10px;background:var(--accent-soft)">${esc(typeof scanned === 'string' ? scanned : 'Read from your photo. Check the numbers against the label, then tap Add.')}</p>` : ''}
     ${base.code ? `<p class="muted small">Barcode ${esc(base.code)}</p>` : ''}
-    ${(!quick && (fresh || lib || entry)) || quick ? `<div class="field"><label class="lbl" for="ff-name">Name${quick ? ' (optional)' : ''}</label><input class="txt" id="ff-name" value="${esc(base.name || '')}" placeholder="${quick ? 'Quick add' : 'For example, Chicken burrito'}" autocomplete="off"></div>` : base.portions ? '<p class="muted small">USDA food database</p>' : `<p class="muted small">${esc(base.serv || '')}</p>`}
+    ${(!quick && (fresh || lib || entry)) || quick ? `<div class="field"><label class="lbl" for="ff-name">Name${quick ? ' (optional)' : ''}</label><input class="txt" id="ff-name" value="${esc(base.name || '')}" placeholder="${quick ? 'Quick add' : 'For example, Chicken burrito'}" autocomplete="off"></div>` : base.portions ? `<p class="muted small">${base.full && base.full !== base.name ? 'USDA: ' + esc(base.full) : 'USDA food database'}</p>` : `<p class="muted small">${esc(base.serv || '')}</p>`}
     ${!quick && (fresh || lib || entry) ? `<div class="field"><label class="lbl" for="ff-serv">Serving size</label><input class="txt" id="ff-serv" value="${esc(base.serv || '')}" placeholder="For example, 1 cup (240 ml)" autocomplete="off"></div>` : ''}
     ${base.portions && !lib && !entry ? `<div class="field"><label class="lbl" for="ff-portion">Amount</label><select class="txt" id="ff-portion">${base.portions.map((p, i) => `<option value="${i}" ${servLabel(p) === base.serv ? 'selected' : ''}>${esc(servLabel(p))}</option>`).join('')}<option value="g">Grams</option></select></div>` : ''}
     ${!lib ? `<div class="grid2"><div class="field"><label class="lbl" for="ff-qty">Servings</label><input class="txt" id="ff-qty" inputmode="decimal" value="${base.qty != null ? fmtNum(base.qty, 2) : 1}" autocomplete="off"></div><div class="field"><label class="lbl" for="ff-meal">Meal</label><select class="txt" id="ff-meal">${MEALS.map(([k, l]) => `<option value="${k}" ${k === meal ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>` : ''}
