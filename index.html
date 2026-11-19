@@ -442,6 +442,10 @@ html:not([data-accent="chalk"]) .tab-ind { background: color-mix(in srgb, var(--
 .ord-sec .card-head + .ord-row { border-top: 0; }
 .ord-row.on .ord-name > div:first-child { font-weight: 700; }
 .ord-name { min-width: 0; }
+.ate-btn { flex: none; gap: 4px; padding: 6px 10px; min-height: 0; }
+.ate-btn svg { width: 14px; height: 14px; }
+.ate-btn.on { background: var(--accent-soft); color: var(--accent-ink-soft, inherit); }
+.ord-pick-row { align-items: center; }
 .ord-pick-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
 .ord-pick-row:first-of-type { border-top: 0; }
 .ord-row .stepper { display: flex; align-items: center; gap: 4px; flex: none; }
@@ -1679,7 +1683,7 @@ function viewMore() {
     ${demoN ? `<button class="row" data-act="demo-clear"><div class="row-l">Remove demo data<div class="small muted">${demoN} demo workouts</div></div>${ic('right', 'chev')}</button>` : `<button class="row" data-act="demo-load"><div class="row-l">Load demo data<div class="small muted">Sample workouts to explore</div></div>${ic('right', 'chev')}</button>`}
     <button class="row" data-act="erase"><div class="row-l" style="color:var(--bad)">Erase all data</div></button>
   </div>
-  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 41</p>`;
+  <p class="muted small foot">Your data stays on this phone. Back up now and then.<br>Version 42</p>`;
 }
 
 // =====================================================================
@@ -2697,7 +2701,7 @@ const rN = a => Object.fromEntries(R_K.map((k, i) => [k, a[i]]));
 const rJ = a => ({ cal: a[0], p: a[1], f: a[2], c: a[3], na: a[4], satf: 0, chol: 0, fib: 0, sug: 0 });
 const RESTAURANTS = {
   chipotle: {
-    name: 'Chipotle', note: 'Chipotle US nutrition facts. Light and extra are estimated at half and one and a half portions.', start: { 'entree:bowl': '1' },
+    name: 'Chipotle', mainLabel: 'Bowl, burrito or tacos', note: 'Chipotle US nutrition facts. Light and extra are estimated at half and one and a half portions.', start: { 'entree:bowl': '1' },
     ing: {
       tortilla: rN([320, 9, 0.5, 0, 600, 50, 3, 0, 8]), tacoflour: rN([80, 2.5, 0, 0, 160, 13, 0.5, 0, 2]), crispy: rN([70, 3, 0, 0, 0, 10, 1, 0, 1]), greens: rN([15, 0, 0, 0, 15, 3, 2, 1, 1]),
       chicken: rN([180, 7, 3, 125, 310, 0, 0, 0, 32]), steak: rN([150, 6, 2.5, 80, 330, 1, 1, 0, 21]), barbacoa: rN([170, 7, 2.5, 65, 530, 2, 1, 0, 24]), carnitas: rN([210, 12, 7, 65, 450, 0, 0, 0, 23]), sofritas: rN([150, 10, 1.5, 0, 560, 9, 3, 5, 8]),
@@ -2713,11 +2717,11 @@ const RESTAURANTS = {
       { id: 'rice', label: 'Rice', kind: 'one', amounts: 'lne', items: [['white', 'White rice'], ['brown', 'Brown rice']] },
       { id: 'beans', label: 'Beans', kind: 'one', amounts: 'lne', items: [['black', 'Black beans'], ['pinto', 'Pinto beans']] },
       { id: 'top', label: 'Toppings', kind: 'many', amounts: 'lne', items: [['fajita', 'Fajita veggies'], ['mild', 'Fresh tomato salsa'], ['corn', 'Roasted chili-corn salsa'], ['green', 'Tomatillo green salsa'], ['red', 'Tomatillo red salsa'], ['sour', 'Sour cream'], ['cheese', 'Cheese'], ['guac', 'Guacamole'], ['queso', 'Queso blanco'], ['lettuce', 'Romaine lettuce']] },
-      { id: 'side', label: 'Sides and drinks', kind: 'many', items: [['chips', 'Chips'], ['chipsL', 'Large chips'], ['sguac', 'Side of guac'], ['squeso', 'Side of queso'], ['vin', 'Honey vinaigrette'], ['coke', 'Coca-Cola, 22 oz'], ['sprite', 'Sprite, 22 oz'], ['diet', 'Diet Coke, 22 oz'], ['lemonade', 'Lemonade, 22 oz']] },
+      { id: 'side', label: 'Sides and drinks', kind: 'many', side: true, items: [['chips', 'Chips'], ['chipsL', 'Large chips'], ['sguac', 'Side of guac'], ['squeso', 'Side of queso'], ['vin', 'Honey vinaigrette'], ['coke', 'Coca-Cola, 22 oz'], ['sprite', 'Sprite, 22 oz'], ['diet', 'Diet Coke, 22 oz'], ['lemonade', 'Lemonade, 22 oz']] },
     ],
   },
   shakeshack: {
-    name: 'Shake Shack', note: 'Shake Shack US nutrition facts. Burgers are built from their parts, which matches the menu totals within a few calories.',
+    name: 'Shake Shack', mainLabel: 'Burger', note: 'Shake Shack US nutrition facts. Burgers are built from their parts, which matches the menu totals within a few calories.',
     start: { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:sauce': '1', 'top:lettuce': '1', 'top:tomato': '1' },
     presets: [['ShackBurger', { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:sauce': '1', 'top:lettuce': '1', 'top:tomato': '1' }], ['SmokeShack', { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:bacon': '1', 'top:cherry': '1', 'top:sauce': '1' }], ['Avocado Bacon', { 'bun:roll': '1', 'patty:beef': '1', 'cheese:cheese': '1', 'top:avocado': '1', 'top:bacon': '1', 'top:sauce': '1' }], ['Hamburger', { 'bun:roll': '1', 'patty:beef': '1' }], ['Chicken Shack', { 'bun:roll': '1', 'patty:chicken': '1', 'top:lettuce': '1', 'top:pickle': '1', 'top:herbmayo': '1' }], ['No burger', {}]],
     ing: {
@@ -2738,10 +2742,10 @@ const RESTAURANTS = {
       { id: 'patty', label: 'Patty', kind: 'one', amounts: [['1', 'Single', 1], ['2', 'Double', 2], ['3', 'Triple', 3]], items: [['beef', 'Beef'], ['chicken', 'Crispy chicken'], ['veggie', 'Veggie patty']] },
       { id: 'cheese', label: 'Cheese', kind: 'one', amounts: [['1', '1 slice', 1], ['2', '2 slices', 2], ['3', '3 slices', 3]], items: [['cheese', 'American cheese']] },
       { id: 'top', label: 'Toppings and sauces', kind: 'many', items: [['sauce', 'ShackSauce'], ['lettuce', 'Lettuce'], ['tomato', 'Tomato'], ['pickle', 'Pickles'], ['onion', 'Onion'], ['bacon', 'Bacon'], ['avocado', 'Avocado'], ['cherry', 'Cherry peppers'], ['jalap', 'Pickled jalapeños'], ['crispy', 'Crispy onions'], ['herbmayo', 'Herb mayo'], ['csauce', 'Cheese sauce']] },
-      { id: 'side', label: 'Sides', kind: 'many', items: [['fries', 'Fries'], ['cfries', 'Cheese fries'], ['bcfries', 'Bacon cheese fries'], ['rings', 'Onion rings'], ['bites6', 'Chicken Bites, 6'], ['bites10', 'Chicken Bites, 10'], ['hotdog', 'Hot dog'], ['cheesedog', 'Cheese dog'], ['ranch', 'Ranch'], ['bbq', 'BBQ sauce'], ['honeym', 'Honey mustard']] },
-      { id: 'shake', label: 'Shake', kind: 'one', items: [['vanilla', 'Vanilla'], ['chocolate', 'Chocolate'], ['vc', 'Vanilla and chocolate'], ['bw', 'Black and white'], ['straw', 'Strawberry'], ['cnc', 'Cookies and cream'], ['coffee', 'Coffee']] },
-      { id: 'shakeadd', label: 'Shake add-ons', kind: 'many', items: [['whip', 'Whipped cream'], ['malt', 'Malt']] },
-      { id: 'drink', label: 'Drink', kind: 'one', items: [['lem', 'Lemonade', null, ['lemS', 'lemL']], ['ff', 'Fifty-fifty', null, ['ffS', 'ffL']], ['st', 'Sweet iced tea', null, ['stS', 'stL']], ['ut', 'Unsweetened iced tea', null, ['utS', 'utL']], ['coke', 'Coke', null, ['cokeS', 'cokeL']], ['diet', 'Diet Coke', null, ['dietS', 'dietL']], ['zero', 'Coke Zero', null, ['zeroS', 'zeroL']], ['sprite', 'Sprite', null, ['spriteS', 'spriteL']], ['rb', 'Root beer', null, ['rbS', 'rbL']]], amounts: [['s', 'Small', 0], ['l', 'Large', 1]] },
+      { id: 'side', label: 'Sides', kind: 'many', side: true, items: [['fries', 'Fries'], ['cfries', 'Cheese fries'], ['bcfries', 'Bacon cheese fries'], ['rings', 'Onion rings'], ['bites6', 'Chicken Bites, 6'], ['bites10', 'Chicken Bites, 10'], ['hotdog', 'Hot dog'], ['cheesedog', 'Cheese dog'], ['ranch', 'Ranch'], ['bbq', 'BBQ sauce'], ['honeym', 'Honey mustard']] },
+      { id: 'shake', label: 'Shake', kind: 'one', side: true, items: [['vanilla', 'Vanilla'], ['chocolate', 'Chocolate'], ['vc', 'Vanilla and chocolate'], ['bw', 'Black and white'], ['straw', 'Strawberry'], ['cnc', 'Cookies and cream'], ['coffee', 'Coffee']] },
+      { id: 'shakeadd', label: 'Shake add-ons', kind: 'many', side: true, ateWith: 'shake', items: [['whip', 'Whipped cream'], ['malt', 'Malt']] },
+      { id: 'drink', label: 'Drink', kind: 'one', side: true, items: [['lem', 'Lemonade', null, ['lemS', 'lemL']], ['ff', 'Fifty-fifty', null, ['ffS', 'ffL']], ['st', 'Sweet iced tea', null, ['stS', 'stL']], ['ut', 'Unsweetened iced tea', null, ['utS', 'utL']], ['coke', 'Coke', null, ['cokeS', 'cokeL']], ['diet', 'Diet Coke', null, ['dietS', 'dietL']], ['zero', 'Coke Zero', null, ['zeroS', 'zeroL']], ['sprite', 'Sprite', null, ['spriteS', 'spriteL']], ['rb', 'Root beer', null, ['rbS', 'rbL']]], amounts: [['s', 'Small', 0], ['l', 'Large', 1]] },
     ],
     nameFn: O => { const has = k => O.sel[k]; const pk = ['beef', 'chicken', 'veggie'].find(k => has('patty:' + k)); const size = pk ? ({ 1: 'Single', 2: 'Double', 3: 'Triple' })[O.sel['patty:' + pk]] : '';
       let main = '';
@@ -2751,7 +2755,7 @@ const RESTAURANTS = {
       return ('Shake Shack ' + size + ' ' + main + side + shake).replace(/\s+/g, ' ').trim(); },
   },
   jets: {
-    name: "Jet's Pizza", short: "Jet's", unknown: ['satf', 'fib', 'sug', 'chol'],
+    name: "Jet's Pizza", short: "Jet's", mainLabel: 'Pizza', unknown: ['satf', 'fib', 'sug', 'chol'],
     note: "Jet's nutrition facts. A slice includes crust, sauce and mozzarella. Toppings count per slice; small, thin and Detroit-style pizzas use Jet's large-pizza topping amounts. Saturated fat, fiber and sugar aren't listed for build-your-own, so they're left out.",
     start: { 'crust:d8': '1', 'slices:slices': '2' },
     crusts: { d4: ['4 Corner (small Detroit)', 'L', [400, 21, 15, 45, 620]], d8: ['8 Corner', 'L', [370, 20, 14, 40, 600]], dL: ['Large Detroit', 'L', [360, 19, 13, 40, 580]], dX: ['X-Large Detroit', 'L', [350, 18, 13, 39, 550]], hS: ['Small hand tossed', 'L', [350, 22, 9, 45, 590]], hM: ['Medium hand tossed', 'M', [230, 14, 6, 29, 400]], hL: ['Large hand tossed', 'L', [330, 21, 9, 40, 590]], ny: ['Large NY style', 'N', [290, 19, 8, 33, 570]], tS: ['Small thin', 'L', [230, 13, 10, 22, 380]], tL: ['Large thin', 'L', [240, 13, 11, 24, 390]], cf: ['Cauliflower (small)', 'L', [170, 10, 7, 16, 420]], gf: ['Gluten-free (small)', 'L', [200, 8, 6, 28, 520]] },
@@ -2771,10 +2775,10 @@ const RESTAURANTS = {
     },
     groups: [
       { id: 'crust', label: 'Crust and size', kind: 'one', req: true, items: [['d4', '4 Corner'], ['d8', '8 Corner'], ['dL', 'Large Detroit'], ['dX', 'X-Large Detroit'], ['hS', 'Small hand tossed'], ['hM', 'Medium hand tossed'], ['hL', 'Large hand tossed'], ['ny', 'Large NY style'], ['tS', 'Small thin'], ['tL', 'Large thin'], ['cf', 'Cauliflower'], ['gf', 'Gluten-free']], custom: true },
-      { id: 'slices', label: 'Slices you ate', kind: 'count', items: [['slices', 'Slices']], custom: true },
+      { id: 'slices', label: 'Slices you ate', kind: 'count', side: true, items: [['slices', 'Slices']], custom: true },
       { id: 'top', label: 'Toppings', kind: 'many', items: [['pep', 'Pepperoni'], ['bold', 'Bold pepperoni'], ['ham', 'Ham'], ['bacon', 'Bacon'], ['sausage', 'Italian sausage'], ['burger', 'Hamburger'], ['chicken', 'Grilled chicken'], ['mush', 'Mushrooms'], ['onion', 'Onions'], ['gpep', 'Green peppers'], ['olive', 'Black olives'], ['pine', 'Pineapple'], ['jal', 'Jalapeños'], ['tom', 'Tomatoes'], ['mozz', 'Extra mozzarella'], ['ched', 'Cheddar'], ['feta', 'Feta'], ['bbq', 'BBQ sauce'], ['ranch', 'Ranch sauce']], custom: true },
       { id: 'flavor', label: 'Crust flavor', kind: 'many', items: [['turbo', 'Turbo Crust'], ['butter', 'Butter'], ['garlic', 'Garlic'], ['romano', 'Romano']], custom: true },
-      { id: 'side', label: 'Sides (pieces)', kind: 'count', items: [['jbread', "Jet's Bread"], ['ddbread', 'Deep Dish Bread'], ['turbostix', 'Turbo Stix'], ['wing', 'Wings'], ['boneless', 'Boneless wings'], ['dgarlic', 'Butter garlic dip'], ['dsauce', 'Pizza sauce dip'], ['dranch', 'Ranch dip']] },
+      { id: 'side', label: 'Sides (pieces)', kind: 'count', side: true, items: [['jbread', "Jet's Bread"], ['ddbread', 'Deep Dish Bread'], ['turbostix', 'Turbo Stix'], ['wing', 'Wings'], ['boneless', 'Boneless wings'], ['dgarlic', 'Butter garlic dip'], ['dsauce', 'Pizza sauce dip'], ['dranch', 'Ranch dip']] },
     ],
     extra: (O, addV) => {
       const R = RESTAURANTS.jets; const ck = Object.keys(O.sel).find(k => k.startsWith('crust:')); if (!ck) return; const c = R.crusts[ck.slice(6)]; const n = Number(O.sel['slices:slices'] || 0); if (!n) return;
@@ -2793,43 +2797,53 @@ const RESTAURANTS = {
     start: {},
     ing: { app_mozz: rN([570, 32, 13, 55, 1470, 40, 1, 3, 28]), app_skins: rN([840, 35, 13, 60, 1670, 109, 18, 3, 23]), app_spin: rN([1080, 69, 29, 130, 3000, 85, 9, 6, 32]), app_queso: rN([810, 46, 20, 100, 2360, 74, 9, 10, 27]), app_eggroll: rN([1010, 54, 20, 105, 1990, 83, 3, 4, 46]), app_strips: rN([810, 22, 3.5, 115, 1830, 119, 0, 115, 38]), app_bslam: rN([520, 29, 9, 55, 2910, 47, 2, 7, 23]), app_wslam: rN([750, 31, 7, 45, 1550, 103, 3, 62, 20]), app_totchos: rN([750, 62, 10, 30, 1750, 39, 6, 0, 8]), app_pot: rN([230, 8, 2, 10, 1440, 32, 1, 16, 7]), app_meatball: rN([210, 16, 3.5, 30, 380, 8, 0, 4, 9]), app_chips: rN([200, 7, 1, 0, 660, 31, 4, 1, 4]), wing_b6: rN([460, 25, 4.5, 35, 1350, 32, 4, 5, 23]), wing_b9: rN([690, 38, 7, 55, 2030, 49, 5, 8, 35]), wing_b12: rN([920, 50, 9, 70, 2700, 65, 7, 11, 47]), wing_t6: rN([250, 11, 3, 100, 110, 0, 0, 0, 36]), wing_t8: rN([340, 15, 4, 135, 150, 0, 0, 0, 48]), wing_t12: rN([510, 22, 6, 200, 220, 0, 0, 0, 72]), sauce_buff: rN([0, 0, 0, 0, 1840, 0, 0, 0, 0]), sauce_whisk: rN([230, 0, 0, 0, 870, 57, 1, 54, 0]), sauce_blaze: rN([230, 4, 0, 0, 890, 49, 1, 45, 0]), sauce_bbq: rN([120, 0, 0, 0, 200, 28, 1, 24, 1]), sauce_gpar: rN([410, 41, 8, 0, 1040, 10, 0, 3, 3]), sauce_nash: rN([200, 18, 2, 0, 620, 13, 2, 10, 0]), sauce_korean: rN([120, 0, 0, 0, 1560, 30, 0, 24, 2]), sauce_orange: rN([120, 0, 0, 0, 340, 24, 0, 22, 0]), sauce_dry: rN([5, 0, 0, 0, 520, 1, 0, 0, 0]), burg_cheese: rN([730, 48, 19, 105, 1940, 42, 2, 11, 32]), burg_bacon: rN([910, 62, 24, 135, 2220, 48, 2, 16, 40]), burg_wburger: rN([1140, 57, 23, 125, 2830, 118, 2, 84, 40]), burg_beyond: rN([920, 59, 18, 30, 2370, 55, 5, 13, 45]), burg_brc: rN([760, 46, 14, 100, 1590, 46, 6, 11, 42]), burg_wchick: rN([950, 44, 14, 100, 2180, 101, 3, 62, 40]), burg_nashs: rN([1140, 74, 14, 110, 3320, 78, 5, 21, 41]), burg_south: rN([1150, 76, 17, 110, 4270, 80, 8, 21, 43]), ent_sirloin: rN([210, 9, 2.5, 90, 590, 3, 1, 1, 30]), ent_flat: rN([320, 11, 4, 140, 640, 3, 1, 1, 48]), ent_ny: rN([460, 18, 6, 180, 660, 3, 1, 1, 66]), ent_salmon: rN([250, 10, 2, 80, 650, 3, 1, 1, 36]), ent_gchick: rN([260, 10, 2.5, 110, 810, 3, 1, 1, 40]), ent_ribh: rN([350, 25, 8, 100, 1700, 4, 1, 0, 28]), ent_ribf: rN([700, 50, 17, 200, 3400, 7, 2, 0, 56]), ent_cajun: rN([1190, 48, 24, 310, 2400, 108, 6, 10, 76]), ent_fingers: rN([870, 56, 10, 105, 1370, 55, 4, 10, 37]), ent_fish: rN([1130, 71, 13, 100, 1560, 85, 3, 5, 40]), ent_fshrimp: rN([720, 35, 7, 285, 1340, 60, 5, 8, 43]), ent_sizzle: rN([970, 61, 23, 295, 2300, 47, 4, 11, 62]), ent_combo: rN([1700, 75, 27, 380, 6880, 177, 10, 94, 87]), ent_pastor: rN([700, 33, 6, 60, 1600, 77, 6, 11, 29]), ent_sshrimp: rN([210, 16, 3.5, 145, 140, 0, 0, 0, 18]), salad_house: rN([80, 3.5, 1.5, 5, 160, 10, 2, 2, 4]), salad_caesar: rN([730, 63, 16, 80, 1560, 20, 4, 3, 23]), salad_cobb: rN([790, 68, 21, 225, 1640, 21, 6, 8, 29]), salad_harvest: rN([640, 24, 5, 10, 900, 101, 13, 48, 14]), salad_thai: rN([270, 10, 1.5, 0, 1020, 46, 5, 32, 3]), salad_addchick: rN([130, 5, 1, 55, 410, 1, 0, 1, 20]), salad_cnoodle: rN([140, 4, 1.5, 30, 900, 14, 1, 3, 10]), salad_fonion: rN([620, 21, 11, 120, 1500, 82, 6, 15, 23]), salad_chowder: rN([410, 28, 18, 105, 1240, 28, 1, 6, 11]), salad_tortilla: rN([270, 13, 5, 40, 1150, 24, 3, 4, 12]), salad_bcs: rN([280, 20, 11, 50, 1400, 17, 1, 5, 12]), side_fries: rN([230, 15, 3.5, 0, 240, 21, 2, 1, 3]), side_mash: rN([340, 10, 5, 35, 1430, 58, 3, 3, 7]), side_lmash: rN([470, 20, 11, 65, 1630, 59, 3, 4, 15]), side_broc: rN([110, 8, 3, 5, 490, 8, 3, 2, 4]), side_beans: rN([140, 9, 3.5, 10, 480, 12, 5, 5, 4]), side_mac: rN([590, 37, 19, 100, 1770, 40, 0, 6, 27]), side_corn: rN([430, 19, 8, 35, 920, 57, 7, 12, 13]), side_slaw: rN([180, 14, 2, 0, 150, 13, 3, 6, 3]), side_rings: rN([350, 14, 2.5, 0, 750, 48, 4, 9, 5]), side_rice: rN([350, 16, 3.5, 0, 390, 46, 1, 1, 5]), side_bread: rN([430, 19, 5, 0, 720, 54, 2, 6, 10]), side_tco: rN([35, 0, 0, 0, 300, 9, 1, 3, 1]), dess_brownie: rN([1170, 57, 27, 145, 470, 157, 4, 118, 11]), dess_cheesecake: rN([930, 45, 21, 125, 550, 126, 2, 94, 8]), dess_smores: rN([300, 7, 6, 0, 100, 39, 1, 30, 7]) },
     groups: [
-      { id: 'app', label: 'Appetizers', kind: 'count', items: [['app_mozz', 'Mozzarella sticks (4)'], ['app_skins', 'Loaded potato skins (4)'], ['app_spin', 'Spinach & artichoke dip'], ['app_queso', 'Loaded poblano queso'], ['app_eggroll', 'Philly cheesesteak egg rolls'], ['app_strips', 'Whiskey-glazed sesame chicken strips'], ['app_bslam', 'Buffalo chicken slammers (2)'], ['app_wslam', 'Whiskey-glazed chicken slammers (2)'], ['app_totchos', 'Truffle tot-chos'], ['app_pot', 'Pot stickers'], ['app_meatball', 'Steakhouse meatballs'], ['app_chips', 'Chips & salsa']] },
-      { id: 'wing', label: 'Wings (sauce below)', kind: 'count', items: [['wing_b6', 'Boneless wings, 6'], ['wing_b9', 'Boneless wings, 9'], ['wing_b12', 'Boneless wings, 12'], ['wing_t6', 'Traditional wings, 6'], ['wing_t8', 'Traditional wings, 8'], ['wing_t12', 'Traditional wings, 12']] },
-      { id: 'sauce', label: 'Wing sauce (one order covers 12 boneless or 8 wings)', kind: 'count', items: [['sauce_buff', "Frank's RedHot Buffalo"], ['sauce_whisk', 'Whiskey-Glaze'], ['sauce_blaze', 'Whiskey-Glaze Blaze'], ['sauce_bbq', 'Apple Butter BBQ'], ['sauce_gpar', 'Garlic Parmesan'], ['sauce_nash', 'Nashville Hot'], ['sauce_korean', 'Korean Red Chile'], ['sauce_orange', 'Spiked Orange Glaze'], ['sauce_dry', 'Dry rub']] },
-      { id: 'burg', label: 'Burgers & sandwiches (no side)', kind: 'count', items: [['burg_cheese', 'Cheeseburger'], ['burg_bacon', 'Bacon cheeseburger'], ['burg_wburger', 'Whiskey-glazed burger'], ['burg_beyond', 'Beyond Meat cheeseburger'], ['burg_brc', 'Bacon ranch chicken sandwich'], ['burg_wchick', 'Whiskey-glazed chicken sandwich'], ['burg_nashs', 'Nashville hot chicken sandwich'], ['burg_south', 'Southern fried chicken sandwich']] },
-      { id: 'ent', label: 'Entrées', kind: 'count', items: [['ent_sirloin', '6 oz sirloin (steak only)'], ['ent_flat', '8 oz flat iron (steak only)'], ['ent_ny', '12 oz NY strip (steak only)'], ['ent_salmon', '6 oz salmon (fish only)'], ['ent_gchick', 'Two grilled chicken breasts'], ['ent_ribh', 'Half rack ribs (no sauce)'], ['ent_ribf', 'Full rack ribs (no sauce)'], ['ent_cajun', 'Cajun shrimp & chicken pasta'], ['ent_fingers', 'Chicken fingers with fries & slaw'], ['ent_fish', 'Fish & chips'], ['ent_fshrimp', 'Fried shrimp with fries & slaw'], ['ent_sizzle', 'Sizzling chicken & shrimp'], ['ent_combo', 'Crispy whiskey combo'], ['ent_pastor', 'Chicken al pastor bowl'], ['ent_sshrimp', 'Sautéed shrimp (6)']] },
-      { id: 'salad', label: 'Salads & soups', kind: 'count', items: [['salad_house', 'House salad, no dressing'], ['salad_caesar', 'Caesar salad'], ['salad_cobb', 'Million Dollar Cobb with ranch'], ['salad_harvest', 'Harvest grains salad'], ['salad_thai', 'Thai mango salad'], ['salad_addchick', 'Add grilled chicken (5 oz)'], ['salad_cnoodle', 'Chicken noodle soup'], ['salad_fonion', 'French onion soup'], ['salad_chowder', 'Clam chowder'], ['salad_tortilla', 'Tortilla soup'], ['salad_bcs', 'White cheddar broccoli soup']] },
-      { id: 'side', label: 'Sides', kind: 'count', items: [['side_fries', 'Seasoned fries'], ['side_mash', 'Mashed potatoes'], ['side_lmash', 'Loaded mashed potatoes'], ['side_broc', 'Garlic-butter broccoli'], ['side_beans', 'Green beans with bacon'], ['side_mac', '4 cheese mac & cheese'], ['side_corn', 'Elote street corn'], ['side_slaw', 'Broccoli slaw'], ['side_rings', 'Giant onion rings'], ['side_rice', 'Jasmine rice'], ['side_bread', 'Garlic breadsticks (2)'], ['side_tco', 'Tomato cucumber salad']] },
-      { id: 'dess', label: 'Desserts', kind: 'count', items: [['dess_brownie', 'Brownie Obsession'], ['dess_cheesecake', 'Cinnabon caramel pecan cheesecake'], ['dess_smores', "Skrewed Up S'Mores"]] },
+      { id: 'app', label: 'Appetizers', kind: 'count', side: true, items: [['app_mozz', 'Mozzarella sticks (4)'], ['app_skins', 'Loaded potato skins (4)'], ['app_spin', 'Spinach & artichoke dip'], ['app_queso', 'Loaded poblano queso'], ['app_eggroll', 'Philly cheesesteak egg rolls'], ['app_strips', 'Whiskey-glazed sesame chicken strips'], ['app_bslam', 'Buffalo chicken slammers (2)'], ['app_wslam', 'Whiskey-glazed chicken slammers (2)'], ['app_totchos', 'Truffle tot-chos'], ['app_pot', 'Pot stickers'], ['app_meatball', 'Steakhouse meatballs'], ['app_chips', 'Chips & salsa']] },
+      { id: 'wing', label: 'Wings (sauce below)', kind: 'count', side: true, items: [['wing_b6', 'Boneless wings, 6'], ['wing_b9', 'Boneless wings, 9'], ['wing_b12', 'Boneless wings, 12'], ['wing_t6', 'Traditional wings, 6'], ['wing_t8', 'Traditional wings, 8'], ['wing_t12', 'Traditional wings, 12']] },
+      { id: 'sauce', label: 'Wing sauce (one order covers 12 boneless or 8 wings)', kind: 'count', side: true, items: [['sauce_buff', "Frank's RedHot Buffalo"], ['sauce_whisk', 'Whiskey-Glaze'], ['sauce_blaze', 'Whiskey-Glaze Blaze'], ['sauce_bbq', 'Apple Butter BBQ'], ['sauce_gpar', 'Garlic Parmesan'], ['sauce_nash', 'Nashville Hot'], ['sauce_korean', 'Korean Red Chile'], ['sauce_orange', 'Spiked Orange Glaze'], ['sauce_dry', 'Dry rub']] },
+      { id: 'burg', label: 'Burgers & sandwiches (no side)', kind: 'count', side: true, items: [['burg_cheese', 'Cheeseburger'], ['burg_bacon', 'Bacon cheeseburger'], ['burg_wburger', 'Whiskey-glazed burger'], ['burg_beyond', 'Beyond Meat cheeseburger'], ['burg_brc', 'Bacon ranch chicken sandwich'], ['burg_wchick', 'Whiskey-glazed chicken sandwich'], ['burg_nashs', 'Nashville hot chicken sandwich'], ['burg_south', 'Southern fried chicken sandwich']] },
+      { id: 'ent', label: 'Entrées', kind: 'count', side: true, items: [['ent_sirloin', '6 oz sirloin (steak only)'], ['ent_flat', '8 oz flat iron (steak only)'], ['ent_ny', '12 oz NY strip (steak only)'], ['ent_salmon', '6 oz salmon (fish only)'], ['ent_gchick', 'Two grilled chicken breasts'], ['ent_ribh', 'Half rack ribs (no sauce)'], ['ent_ribf', 'Full rack ribs (no sauce)'], ['ent_cajun', 'Cajun shrimp & chicken pasta'], ['ent_fingers', 'Chicken fingers with fries & slaw'], ['ent_fish', 'Fish & chips'], ['ent_fshrimp', 'Fried shrimp with fries & slaw'], ['ent_sizzle', 'Sizzling chicken & shrimp'], ['ent_combo', 'Crispy whiskey combo'], ['ent_pastor', 'Chicken al pastor bowl'], ['ent_sshrimp', 'Sautéed shrimp (6)']] },
+      { id: 'salad', label: 'Salads & soups', kind: 'count', side: true, items: [['salad_house', 'House salad, no dressing'], ['salad_caesar', 'Caesar salad'], ['salad_cobb', 'Million Dollar Cobb with ranch'], ['salad_harvest', 'Harvest grains salad'], ['salad_thai', 'Thai mango salad'], ['salad_addchick', 'Add grilled chicken (5 oz)'], ['salad_cnoodle', 'Chicken noodle soup'], ['salad_fonion', 'French onion soup'], ['salad_chowder', 'Clam chowder'], ['salad_tortilla', 'Tortilla soup'], ['salad_bcs', 'White cheddar broccoli soup']] },
+      { id: 'side', label: 'Sides', kind: 'count', side: true, items: [['side_fries', 'Seasoned fries'], ['side_mash', 'Mashed potatoes'], ['side_lmash', 'Loaded mashed potatoes'], ['side_broc', 'Garlic-butter broccoli'], ['side_beans', 'Green beans with bacon'], ['side_mac', '4 cheese mac & cheese'], ['side_corn', 'Elote street corn'], ['side_slaw', 'Broccoli slaw'], ['side_rings', 'Giant onion rings'], ['side_rice', 'Jasmine rice'], ['side_bread', 'Garlic breadsticks (2)'], ['side_tco', 'Tomato cucumber salad']] },
+      { id: 'dess', label: 'Desserts', kind: 'count', side: true, items: [['dess_brownie', 'Brownie Obsession'], ['dess_cheesecake', 'Cinnabon caramel pecan cheesecake'], ['dess_smores', "Skrewed Up S'Mores"]] },
     ],
     nameFn: menuName,
   },
 };
 const LNE = [['l', 'Light', 0.5], ['n', 'Regular', 1], ['e', 'Extra', 1.5]];
+// how much of it you finished: O.ate.main for the bowl/burger/pizza, O.ate[key] for each side
+const ateOf = (O, key) => { const v = (O.ate || {})[key]; return v == null ? 1 : v; };
+const FRAC = { 0.25: '¼', 0.5: '½', 0.75: '¾', 0.33: '⅓', 0.67: '⅔' };
+const fracLabel = v => { const r = Math.round(v * 100) / 100; return v === 1 ? 'All' : FRAC[r] || (r < 1 ? Math.round(r * 100) + '%' : r + '×'); };
+function hasMain(R) { return R.groups.some(g => !g.side); }
 function orderTotals(O) {
   const R = RESTAURANTS[O.r]; const t = Object.fromEntries(R_K.map(k => [k, 0]));
-  const add = (id, m) => { const v = R.ing[id]; if (v) R_K.forEach(k => { t[k] += v[k] * m; }); };
+  const main = ateOf(O, 'main'); let fr = 1;
+  const add = (id, m) => { const v = R.ing[id]; if (v) R_K.forEach(k => { t[k] += v[k] * m * fr; }); };
   for (const g of R.groups) {
     if (g.custom) continue;
-    if (g.kind === 'count') { for (const [id] of g.items) { const n = Number(O.sel[g.id + ':' + id] || 0); if (n) add(id, n); } continue; }
+    const gf = key => g.side ? ateOf(O, g.ateWith ? Object.keys(O.sel).find(k => k.startsWith(g.ateWith + ':')) || key : key) : main;
+    if (g.kind === 'count') { for (const [id] of g.items) { const key = g.id + ':' + id; const n = Number(O.sel[key] || 0); if (n) { fr = gf(key); add(id, n); } } continue; }
     const amts = g.amounts === 'lne' ? LNE : g.amounts;
     for (const [id, , extra, sizes] of g.items) {
-      const sel = O.sel[g.id + ':' + id]; if (!sel) continue;
+      const sel = O.sel[g.id + ':' + id]; if (!sel) continue; fr = gf(g.id + ':' + id);
       const am = amts ? (amts.find(a => a[0] === sel) || amts[0]) : null; const m = am ? am[2] : 1;
       if (sizes) add(sizes[m] || sizes[0], 1); else if (extra && extra.length) extra.forEach(([iid, n]) => add(iid, n)); else if (!extra) add(id, m);
     }
   }
-  if (R.extra) R.extra(O, (v, m) => R_K.forEach(k => { t[k] += (v[k] || 0) * m; }));
+  if (R.extra) R.extra(O, (v, m) => R_K.forEach(k => { t[k] += (v[k] || 0) * m * main; }));
   R_K.forEach(k => { t[k] = Math.round(t[k] * 10) / 10; });
   return t;
 }
 // menu-style places: "Fridays: Cheeseburger, 2 Seasoned fries"
 function menuName(O) {
   const R = RESTAURANTS[O.r]; const parts = [];
-  for (const g of R.groups) for (const [id, l] of g.items) { const n = Number(O.sel[g.id + ':' + id] || 0); if (n) parts.push((n > 1 ? n + ' ' : '') + l.replace(/ \((steak|fish) only\)| \(no (sauce|side)\)/, '')); }
+  for (const g of R.groups) for (const [id, l] of g.items) { const key = g.id + ':' + id; const n = Number(O.sel[key] || 0) * ateOf(O, key); if (n) parts.push((n !== 1 ? (FRAC[Math.round(n * 100) / 100] || Math.round(n * 100) / 100) + ' ' : '') + l.replace(/ \((steak|fish) only\)| \(no (sauce|side)\)/, '')); }
   return parts.length ? `${R.short || R.name}: ${parts.slice(0, 3).join(', ')}${parts.length > 3 ? ` +${parts.length - 3}` : ''}` : R.name;
 }
 function orderName(O) {
+  const nm = orderBaseName(O), m = ateOf(O, 'main'); return m !== 1 && hasMain(RESTAURANTS[O.r]) ? `${nm} (ate ${fracLabel(m)})` : nm;
+}
+function orderBaseName(O) {
   const R = RESTAURANTS[O.r]; if (R.nameFn) return R.nameFn(O); const pick = gid => { const g = R.groups.find(x => x.id === gid); const it = g.items.find(([id]) => O.sel[gid + ':' + id]); return it ? { id: it[0], n: it[1], amt: O.sel[gid + ':' + it[0]] } : null; };
   const e = pick('entree'), p = pick('protein');
   return [R.name, p ? (p.amt === '2' ? 'Double ' : '') + p.n : 'Veggie', e ? (e.id === 'crispy' || e.id === 'tacos' ? 'Tacos' : e.n) : ''].join(' ').trim();
@@ -2857,12 +2871,20 @@ function renderOrder() {
   const menuTabs = (O, R) => {
     const cat = R.groups.find(g => g.id === O.cat) || R.groups[0]; const n = g => g.items.reduce((a, [id]) => a + Number(O.sel[g.id + ':' + id] || 0), 0);
     const tabs = R.groups.map(g => { const c = n(g); return `<button class="chip ${g === cat ? 'on' : ''}" data-act="ord-cat" data-g="${g.id}" aria-pressed="${g === cat}">${esc(g.label.split(' (')[0].split(' & ')[0])}${c ? ` · ${c}` : ''}</button>`; }).join('');
-    const picked = []; R.groups.forEach(g => g.items.forEach(([id, l]) => { const k = Number(O.sel[g.id + ':' + id] || 0); if (k) picked.push(`<div class="ord-pick-row"><span>${k > 1 ? k + ' × ' : ''}${esc(l)}</span><span class="muted num">${fmtBig(R.ing[id].cal * k)} cal</span></div>`); }));
-    return (picked.length ? `<div class="card ord-sec"><div class="card-head"><h2 class="h3">Your order</h2></div>${picked.join('')}</div>` : '') + `<div class="chips wrap" style="margin:4px 0 10px" role="tablist" aria-label="Menu sections">${tabs}</div>` + sec(cat);
+    return ateCard() + `<div class="chips wrap" style="margin:4px 0 10px" role="tablist" aria-label="Menu sections">${tabs}</div>` + sec(cat);
+  };
+  const ateBtn = (key, v) => `<button class="btn sm ate-btn ${v !== 1 ? 'on' : ''}" data-act="ord-ate" data-k="${esc(key)}" aria-label="How much you ate">${v === 1 ? 'All' : 'Ate ' + fracLabel(v)}${ic('down')}</button>`;
+  const ateCard = () => {
+    const rows = [];
+    if (hasMain(R)) { const any = R.groups.some(g => !g.side && Object.keys(O.sel).some(k => k.startsWith(g.id + ':'))); const sideG = new Set(R.groups.filter(g => g.side).map(g => g.id)); const mc = orderTotals({ ...O, sel: Object.fromEntries(Object.entries(O.sel).filter(([k]) => !sideG.has(k.split(':')[0]))) }).cal;
+      if (any) rows.push(`<div class="ord-pick-row"><span>${esc(R.mainLabel || 'Main')} <span class="muted small num">${fmtBig(mc)} cal</span></span>${ateBtn('main', ateOf(O, 'main'))}</div>`); }
+    R.groups.filter(g => g.side && !g.ateWith).forEach(g => g.items.forEach(([id, l]) => { const key = g.id + ':' + id; const n = Number(O.sel[key] || 0); if (!n) return; const v = R.ing[id] ? R.ing[id].cal * (g.kind === 'count' ? n : 1) * ateOf(O, key) : 0;
+      rows.push(`<div class="ord-pick-row"><span>${g.kind === 'count' && n > 1 ? n + ' × ' : ''}${esc(l)}${v ? ` <span class="muted small num">${fmtBig(v)} cal</span>` : ''}</span>${ateBtn(key, ateOf(O, key))}</div>`); }));
+    return rows.length ? `<div class="card ord-sec"><div class="card-head"><h2 class="h3">${R.menu ? 'Your order' : 'How much did you eat?'}</h2></div>${rows.join('')}</div>` : '';
   };
   const rests = Object.entries(RESTAURANTS).map(([k, x]) => `<button class="chip ${k === O.r ? 'on' : ''}" data-act="ord-rest" data-r="${k}" aria-pressed="${k === O.r}">${esc(x.name)}</button>`).join('');
   const presets = R.presets ? `<div class="card ord-sec"><div class="card-head"><h2 class="h3">Start from</h2><span class="muted small">Then change anything</span></div><div class="chips wrap">${R.presets.map(([l], i) => `<button class="chip" data-act="ord-preset" data-i="${i}">${esc(l)}</button>`).join('')}</div></div>` : '';
-  const body = `<div class="chips wrap" style="margin:0 0 10px" role="group" aria-label="Restaurant">${rests}</div><p class="muted small" style="margin:0 2px 10px">${esc(R.note)}</p>${presets}${R.menu ? menuTabs(O, R) : R.groups.map(sec).join('')}
+  const body = `<div class="chips wrap" style="margin:0 0 10px" role="group" aria-label="Restaurant">${rests}</div><p class="muted small" style="margin:0 2px 10px">${esc(R.note)}</p>${presets}${R.menu ? menuTabs(O, R) : R.groups.map(sec).join('') + ateCard()}
     <div class="card"><div class="field"><label class="lbl" for="ord-name">Name in your log</label><input class="txt" id="ord-name" value="${esc(O.name)}" autocomplete="off"></div>
     <label class="check-row"><input type="checkbox" id="ord-save" ${O.save ? 'checked' : ''}> Save to My foods for next time</label></div>`;
   const foot = `<div class="ord-foot"><div class="ord-tot"><b class="num">${fmtBig(t.cal)}</b> cal<span class="muted small"> · ${fmtN(t.p, 'p')} g protein · ${fmtN(t.c, 'c')} g carbs · ${fmtN(t.f, 'f')} g fat</span></div><button class="btn primary" data-act="ord-add">Add to ${esc(mealName(O.meal))}</button></div>`;
@@ -2894,9 +2916,16 @@ function orderAdd() {
   if (O.save) { S.foods.push({ id: 'f-' + uid(), name, serv: '1 order', ...facts }); commit('foods'); }
   UI.order = null; closeSheet('order'); renderView(); toast(`Added ${name}`);
 }
+async function orderAte(key) {
+  const O = UI.order; const cur = ateOf(O, key);
+  const v = await actionSheet('How much did you eat?', [[1, 'All of it'], [0.75, '¾'], [0.5, 'Half'], [0.25, '¼'], ['x', 'Other amount…']].map(([v, label]) => ({ v, label, sel: v === cur })));
+  if (v == null || !UI.order) return; let n = v;
+  if (v === 'x') { const t = await promptDialog('How much did you eat?', 'Amount, like 0.6 for 60% or 1.5 for one and a half', String(cur)); if (t == null) return; n = parseFloat(t.replace(',', '.')); if (!(n >= 0) || n > 20) { toast('Enter a number like 0.5'); return; } }
+  O.ate = O.ate || {}; if (n === 1) delete O.ate[key]; else O.ate[key] = n; renderOrder();
+}
 function orderCat(g) { UI.order.cat = g; renderOrder(); }
 function orderCount(g, id, d) { const O = UI.order; const key = g + ':' + id; const n = Math.max(0, Math.min(99, Number(O.sel[key] || 0) + d)); if (n) O.sel[key] = String(n); else delete O.sel[key]; renderOrder(); }
-function orderRest(r) { const O = UI.order; if (!O || !RESTAURANTS[r] || O.r === r) return; O.r = r; O.sel = { ...RESTAURANTS[r].start }; O.named = false; renderOrder(); }
+function orderRest(r) { const O = UI.order; if (!O || !RESTAURANTS[r] || O.r === r) return; O.r = r; O.sel = { ...RESTAURANTS[r].start }; O.ate = {}; O.cat = null; O.named = false; renderOrder(); }
 function orderPreset(i) { const O = UI.order; const R = RESTAURANTS[O.r]; const p = R.presets && R.presets[i]; if (!p) return; O.sel = { ...p[1] }; O.named = false; renderOrder(); }
 (() => {
   document.addEventListener('input', ev => { if (ev.target.id === 'ord-name' && UI.order) { UI.order.name = ev.target.value; UI.order.named = true; } });
@@ -4153,6 +4182,7 @@ const ACT = {
   'ord-add': () => orderAdd(),
   'ord-rest': el => orderRest(el.dataset.r),
   'ord-preset': el => orderPreset(+el.dataset.i),
+  'ord-ate': el => orderAte(el.dataset.k),
   'ord-cat': el => orderCat(el.dataset.g),
   'ord-cnt': el => orderCount(el.dataset.g, el.dataset.id, +el.dataset.d),
   'ord-cancel': () => { UI.order = null; closeSheet('order'); },
